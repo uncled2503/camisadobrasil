@@ -28,7 +28,7 @@ export function SalesNotifications() {
     // Primeira notificação mais rápida (2 segundos)
     const initialTimer = setTimeout(showNotification, 2000);
 
-    // Intervalo muito mais curto (entre 6 e 12 segundos)
+    // Intervalo (entre 6 e 12 segundos)
     const interval = setInterval(() => {
       showNotification();
     }, 6000 + Math.random() * 6000);
@@ -40,26 +40,26 @@ export function SalesNotifications() {
   }, []);
 
   return (
-    <div className="fixed bottom-6 left-6 z-[60] hidden md:block">
+    <div className="fixed bottom-24 left-4 z-[60] md:bottom-6 md:left-6">
       <AnimatePresence>
         {notification && (
           <motion.div
             initial={{ opacity: 0, x: -20, scale: 0.95 }}
             animate={{ opacity: 1, x: 0, scale: 1 }}
             exit={{ opacity: 0, x: -20, scale: 0.95 }}
-            className="flex items-center gap-4 rounded-2xl border border-white/10 bg-[#060a12]/90 p-4 shadow-2xl backdrop-blur-xl"
+            className="flex items-center gap-3 rounded-2xl border border-white/10 bg-[#060a12]/90 p-3 shadow-2xl backdrop-blur-xl md:gap-4 md:p-4"
           >
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-green-500/20 text-green-500">
-              <CheckCircle2 size={20} />
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-green-500/20 text-green-500 md:h-10 md:w-10">
+              <CheckCircle2 size={18} className="md:size-5" />
             </div>
             <div className="pr-2">
-              <p className="text-[11px] font-bold uppercase tracking-wider text-green-500">
+              <p className="text-[10px] font-bold uppercase tracking-wider text-green-500 md:text-[11px]">
                 Compra Aprovada
               </p>
-              <p className="mt-0.5 text-sm font-semibold text-white">
+              <p className="mt-0.5 text-xs font-semibold text-white md:text-sm">
                 {notification.name} — {notification.city}
               </p>
-              <p className="text-[10px] text-muted-foreground">
+              <p className="text-[9px] text-muted-foreground md:text-[10px]">
                 Acabou de garantir a Edição Sagrada
               </p>
             </div>
