@@ -19,10 +19,11 @@ const display = Syne({
 });
 
 export const metadata: Metadata = {
-  title: "Camisa do Brasil Estilizada | Edição especial — R$ 69",
+  title: "Alpha Brasil | Camisa do Brasil Estilizada — R$ 69",
   description:
-    "Camisa premium com identidade brasileira, acabamento refinado e presença marcante. Edição limitada. Envio rápido e pagamento via Pix em breve.",
+    "Alpha Brasil - Camisa premium com identidade brasileira, acabamento refinado e presença marcante. Edição limitada.",
   keywords: [
+    "Alpha Brasil",
     "camisa Brasil",
     "camisa estilizada",
     "edição especial",
@@ -30,9 +31,9 @@ export const metadata: Metadata = {
     "Brasil",
   ],
   openGraph: {
-    title: "Camisa do Brasil Estilizada | Edição especial",
+    title: "Alpha Brasil | Camisa do Brasil Estilizada",
     description:
-      "Peça exclusiva com visual noturno e alto valor percebido. Garanta a sua.",
+      "Peça exclusiva com visual noturno e alto valor percebido. Garanta a sua na Alpha Brasil.",
     type: "website",
     locale: "pt_BR",
   },

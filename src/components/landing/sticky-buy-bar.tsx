@@ -37,7 +37,7 @@ export function StickyBuyBar({ onAddToCart }: StickyBuyBarProps) {
             <div className="mx-auto flex max-w-lg items-center justify-between gap-5">
               <div>
                 <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
-                  Brasil Estilizada
+                  Alpha Brasil
                 </p>
                 <p className="mt-0.5 font-display text-[1.35rem] font-bold tabular-nums tracking-tight text-gold-bright">
                   {PRODUCT.priceFormatted}
