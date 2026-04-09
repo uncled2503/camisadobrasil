@@ -69,21 +69,26 @@
       inset 0 1px 0 0 rgba(255, 255, 255, 0.05);
   }
 
-  .bg-gold-shine {
+  /* Efeito de Reflexo (Shimmer) Branco */
+  .shimmer-btn {
+    @apply relative overflow-hidden;
+  }
+
+  .shimmer-btn::after {
+    content: "";
+    @apply absolute inset-0 -translate-x-full;
     background: linear-gradient(
-      135deg,
-      hsl(var(--gold-muted)) 0%,
-      hsl(var(--gold)) 45%,
-      hsl(var(--gold-bright)) 50%,
-      hsl(var(--gold)) 55%,
-      hsl(var(--gold-deep)) 100%
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.2),
+      transparent
     );
-    background-size: 200% 200%;
-    animation: shine 4s linear infinite;
+    animation: shimmer 3s infinite;
   }
 }
 
-@keyframes shine {
-  0% { background-position: 200% 0%; }
-  100% { background-position: -200% 0%; }
+@keyframes shimmer {
+  100% {
+    transform: translateX(100%);
+  }
 }

@@ -1,5 +1,3 @@
-import { LightningEffects } from "./lightning-effects";
-
 /**
  * Fundo cinematográfico fixo — uma única camada de grain; as secções só acrescentam lavagens suaves.
  */
@@ -50,9 +48,6 @@ export function AmbientBackground() {
       />
       {/* Grain único — baixa opacidade */}
       <div className="absolute inset-0 bg-grain opacity-[0.035]" />
-      
-      {/* Efeitos de Raio Elétrico */}
-      <LightningEffects />
     </div>
   );
 }

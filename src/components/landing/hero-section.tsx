@@ -114,16 +114,10 @@ export function HeroSection({
                           className={cn(
                             "group relative flex h-12 w-12 items-center justify-center rounded-xl text-xs font-bold transition-all duration-300",
                             selectedSize === s
-                              ? "text-navy-deep"
+                              ? "bg-gold text-navy-deep"
                               : "border border-white/10 bg-white/[0.03] text-muted-foreground hover:border-gold/40"
                           )}
                         >
-                          {selectedSize === s && (
-                            <motion.span 
-                              layoutId="size-bg"
-                              className="absolute inset-0 rounded-xl bg-gold-shine" 
-                            />
-                          )}
                           <span className="relative z-10">{s}</span>
                         </button>
                       ))}
@@ -133,7 +127,7 @@ export function HeroSection({
 
                 <Button 
                   size="xl" 
-                  className="w-full text-base font-bold uppercase tracking-widest shadow-[0_0_30px_-5px_hsl(var(--gold)/0.4)]" 
+                  className="shimmer-btn w-full text-base font-bold uppercase tracking-widest shadow-[0_0_30px_-5px_hsl(var(--gold)/0.4)]" 
                   onClick={onAddToCart}
                 >
                   <ShoppingCart className="mr-3 h-5 w-5" />
