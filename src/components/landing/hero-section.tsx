@@ -3,7 +3,6 @@
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { LuxuryProductSlider } from "@/components/ui/luxury-product-slider";
 import { TrustBadges } from "./trust-badges";
 import { PRODUCT, SIZES, HERO_PRODUCT_SLIDES } from "@/lib/product";
 import type { Size } from "@/lib/types";
@@ -36,6 +35,8 @@ export function HeroSection({
     [0, 1],
     mobileOff || reduced ? [0, 0] : [0, 48]
   );
+
+  const heroItem = HERO_PRODUCT_SLIDES[0];
 
   return (
     <section
@@ -150,14 +151,20 @@ export function HeroSection({
               initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-              className="hero-product-frame overflow-hidden rounded-[2.5rem] bg-navy-deep/40 backdrop-blur-sm"
+              className="hero-product-frame aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-navy-deep/40 backdrop-blur-sm"
             >
-              <LuxuryProductSlider
-                images={HERO_PRODUCT_SLIDES}
-                priority
-                quality={95}
-                aspectClassName="aspect-[4/5]"
-              />
+              <video
+                className="h-full w-full object-cover"
+                muted
+                loop
+                playsInline
+                autoPlay
+                poster={heroItem.posterSrc}
+                aria-label={heroItem.alt}
+              >
+                <source src={heroItem.webmSrc} type="video/webm" />
+                <source src={heroItem.mp4Src} type="video/mp4" />
+              </video>
             </motion.div>
           </div>
         </motion.div>
