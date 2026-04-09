@@ -42,8 +42,11 @@ export const PRODUCT_IMAGE_GALLERY_MACRO_SRC =
 export const PRODUCT_IMAGE_GALLERY_MACRO_V2_SRC =
   "/images/camisa-detalhes-macro-v2.png" as const;
 
-/** Resumo do pedido — alinhado à arte principal de marketing. */
-export const PRODUCT_IMAGE_SRC = PRODUCT_IMAGE_MAIN_SRC;
+/** Imagem limpa para o carrinho e resumo. */
+export const PRODUCT_IMAGE_CLEAN_SRC = "/images/camisa-brasil-clean.png" as const;
+
+/** Resumo do pedido — agora usa a versão com fundo limpo. */
+export const PRODUCT_IMAGE_SRC = PRODUCT_IMAGE_CLEAN_SRC;
 
 export const SIZES = ["P", "M", "G", "GG"] as const;
 export type Size = (typeof SIZES)[number];
