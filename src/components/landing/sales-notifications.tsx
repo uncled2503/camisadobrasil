@@ -13,21 +13,25 @@ export function SalesNotifications() {
   useEffect(() => {
     const showNotification = () => {
       const name = NAMES[Math.floor(Math.random() * NAMES.length)];
-      const city = CITIES[Math.floor(Math.random() * CITIES.length)];
-      setNotification({ name, city });
+      const city = CITIES[CITIES.length - 1 - Math.floor(Math.random() * CITIES.length)];
+      setNotification({ 
+        name, 
+        city: city || CITIES[0] 
+      });
 
+      // Tempo que a notificação fica visível
       setTimeout(() => {
         setNotification(null);
-      }, 5000);
+      }, 4000);
     };
 
-    // Primeira notificação após 4 segundos
-    const initialTimer = setTimeout(showNotification, 4000);
+    // Primeira notificação mais rápida (2 segundos)
+    const initialTimer = setTimeout(showNotification, 2000);
 
-    // Intervalo entre notificações (entre 15 e 25 segundos)
+    // Intervalo muito mais curto (entre 6 e 12 segundos)
     const interval = setInterval(() => {
       showNotification();
-    }, 20000 + Math.random() * 10000);
+    }, 6000 + Math.random() * 6000);
 
     return () => {
       clearTimeout(initialTimer);
