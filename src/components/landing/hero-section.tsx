@@ -4,11 +4,12 @@ import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion
 import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { LuxuryProductSlider } from "@/components/ui/luxury-product-slider";
+import { TrustBadges } from "./trust-badges";
 import { PRODUCT, SIZES, HERO_PRODUCT_SLIDES } from "@/lib/product";
 import type { Size } from "@/lib/types";
 import { useMobileParallaxOff } from "@/hooks/use-is-mobile-parallax";
 import { cn } from "@/lib/utils";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Star } from "lucide-react";
 
 type HeroSectionProps = {
   selectedSize: Size;
@@ -35,91 +36,94 @@ export function HeroSection({
     [0, 1],
     mobileOff || reduced ? [0, 0] : [0, 48]
   );
-  const contentY = useTransform(
-    scrollYProgress,
-    [0, 1],
-    mobileOff || reduced ? [0, 0] : [0, 18]
-  );
 
   return (
     <section
       id="inicio"
       ref={sectionRef}
-      className="relative min-h-[100dvh] overflow-hidden bg-gradient-to-b from-[hsl(220,40%,8%)] to-[#04070d]"
+      className="relative min-h-[100dvh] overflow-hidden bg-[#04070d]"
       aria-labelledby="hero-heading"
     >
-      <div className="relative z-10 mx-auto grid min-h-[100dvh] max-w-[1600px] grid-cols-1 items-center gap-14 px-5 pb-24 pt-[7.25rem] md:gap-20 md:px-10 md:pb-28 md:pt-32 lg:grid-cols-[minmax(0,1.1fr)_minmax(0,0.9fr)] lg:gap-10 lg:pb-32 xl:px-14">
-        <motion.div
-          style={{ y: contentY }}
-          className="order-2 flex flex-col justify-center text-center lg:order-1 lg:text-left"
-        >
-          <div className="mx-auto w-full lg:mx-0">
-            <motion.p
-              initial={{ opacity: 0, y: 8 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.45 }}
-              className="mb-8 font-sans text-xs font-bold uppercase tracking-[0.4em] text-gold md:mb-10"
-            >
-              Cápsula · {PRODUCT.shortName}
-            </motion.p>
-
-            <motion.h1
-              id="hero-heading"
-              initial={{ opacity: 0, y: 16 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.55, delay: 0.03 }}
-              className="font-display text-balance font-extrabold tracking-[-0.04em] antialiased"
-            >
-              <span className="block text-[clamp(2.75rem,8vw,5rem)] leading-[0.94] text-white">
-                Não é só vestir.
-              </span>
-              <span className="mt-4 block bg-gradient-to-br from-[#f8f0dc] via-[#d9bc82] to-[#8f7348] bg-clip-text text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.96] text-transparent">
-                É impor presença.
-              </span>
-            </motion.h1>
-          </div>
-
-          <motion.p
+      <div className="relative z-10 mx-auto grid min-h-[100dvh] max-w-[1600px] grid-cols-1 items-center gap-14 px-5 pb-24 pt-[7.25rem] md:gap-20 md:px-10 md:pb-28 md:pt-32 lg:grid-cols-[1.1fr_0.9fr] lg:gap-16 xl:px-14">
+        
+        <div className="order-2 flex flex-col justify-center text-center lg:order-1 lg:text-left">
+          <motion.div
             initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.45, delay: 0.08 }}
-            className="mx-auto mt-12 max-w-lg text-xl font-medium leading-relaxed text-muted-foreground md:mx-0 md:mt-14"
+            className="mb-6 flex items-center justify-center gap-2 lg:justify-start"
           >
-            Coleção cápsula para quem comanda o ambiente — identidade brasileira, silhueta afiada,
-            acabamento de selecionar.
+            <div className="flex gap-0.5">
+              {[...Array(5)].map((_, i) => (
+                <Star key={i} className="h-3 w-3 fill-gold text-gold" />
+              ))}
+            </div>
+            <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-gold/90">
+              +4.800 CLIENTES SATISFEITOS
+            </span>
+          </motion.div>
+
+          <motion.h1
+            id="hero-heading"
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6 }}
+            className="font-display font-extrabold tracking-tight"
+          >
+            <span className="block text-[clamp(2.5rem,7vw,4.5rem)] leading-[0.9] text-white">
+              A Identidade que
+            </span>
+            <span className="mt-2 block bg-gradient-to-r from-gold-bright via-gold to-gold-muted bg-clip-text text-[clamp(2.5rem,7vw,4.5rem)] leading-[1] text-transparent">
+              Protege e Une.
+            </span>
+          </motion.h1>
+
+          <motion.p
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ duration: 0.6, delay: 0.1 }}
+            className="mx-auto mt-8 max-w-xl text-lg font-medium leading-relaxed text-muted-foreground/90 lg:mx-0 md:text-xl"
+          >
+            Design purificado com a presença do <span className="text-white font-bold">Cristo Redentor</span> em jacquard. Uma peça que resgata a verdadeira essência do Brasil com elegância e respeito.
           </motion.p>
 
           <motion.div
-            initial={{ opacity: 0, y: 12 }}
+            initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.14 }}
-            className="mx-auto mt-14 w-full max-w-lg lg:mx-0 md:mt-18"
+            transition={{ duration: 0.6, delay: 0.2 }}
+            className="mt-12 flex flex-col gap-6"
           >
-            <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.02] p-8 shadow-luxe backdrop-blur-xl md:p-10">
+            <div className="relative overflow-hidden rounded-[2rem] border border-white/[0.08] bg-white/[0.02] p-6 shadow-luxe backdrop-blur-xl md:p-10">
               <div className="flex flex-col gap-8">
-                <div className="flex flex-col gap-8 sm:flex-row sm:items-end sm:justify-between">
+                <div className="flex flex-col gap-6 sm:flex-row sm:items-end sm:justify-between">
                   <div className="text-center sm:text-left">
-                    <p className="font-sans text-xs font-bold uppercase tracking-widest text-muted-foreground">Preço</p>
-                    <p className="mt-3 font-display text-4xl font-bold text-gold-bright">
-                      {PRODUCT.priceFormatted}
-                    </p>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Preço Exclusivo</p>
+                    <div className="mt-2 flex items-baseline justify-center gap-2 sm:justify-start">
+                      <span className="text-sm text-muted-foreground line-through">R$ 149,00</span>
+                      <span className="font-display text-4xl font-bold text-gold-bright">{PRODUCT.priceFormatted}</span>
+                    </div>
                   </div>
+                  
                   <div className="flex-1">
-                    <p className="mb-4 text-center font-sans text-xs font-bold uppercase tracking-widest text-muted-foreground sm:text-left">Tamanho</p>
-                    <div className="flex flex-wrap justify-center gap-3 sm:justify-start">
+                    <p className="mb-3 text-center text-[10px] font-bold uppercase tracking-widest text-muted-foreground sm:text-left">Selecione seu Tamanho</p>
+                    <div className="flex flex-wrap justify-center gap-2 sm:justify-start">
                       {SIZES.map((s) => (
                         <button
                           key={s}
                           type="button"
                           onClick={() => onSizeChange(s)}
                           className={cn(
-                            "relative min-h-[3rem] min-w-[3rem] overflow-hidden rounded-xl text-sm font-bold transition-all duration-300",
+                            "group relative flex h-12 w-12 items-center justify-center rounded-xl text-xs font-bold transition-all duration-300",
                             selectedSize === s
-                              ? "text-navy-deep shadow-gold-soft"
-                              : "border border-white/[0.1] bg-white/[0.03] text-muted-foreground hover:border-gold/50"
+                              ? "text-navy-deep"
+                              : "border border-white/10 bg-white/[0.03] text-muted-foreground hover:border-gold/40"
                           )}
                         >
-                          {selectedSize === s && <span className="absolute inset-0 bg-gold-shine" />}
+                          {selectedSize === s && (
+                            <motion.span 
+                              layoutId="size-bg"
+                              className="absolute inset-0 rounded-xl bg-gold-shine" 
+                            />
+                          )}
                           <span className="relative z-10">{s}</span>
                         </button>
                       ))}
@@ -127,24 +131,31 @@ export function HeroSection({
                   </div>
                 </div>
 
-                <Button size="xl" className="w-full text-base" onClick={onAddToCart}>
+                <Button 
+                  size="xl" 
+                  className="w-full text-base font-bold uppercase tracking-widest shadow-[0_0_30px_-5px_hsl(var(--gold)/0.4)]" 
+                  onClick={onAddToCart}
+                >
                   <ShoppingCart className="mr-3 h-5 w-5" />
-                  Adicionar ao carrinho
+                  Garantir minha Edição Sagrada
                 </Button>
               </div>
+              
+              <TrustBadges />
             </div>
           </motion.div>
-        </motion.div>
+        </div>
 
         <motion.div
           style={{ y: imgY }}
           className="order-1 flex items-center justify-center lg:order-2"
         >
-          <div className="relative w-full max-w-[340px] lg:max-w-[420px] xl:max-w-[460px]">
+          <div className="relative w-full max-w-[380px] lg:max-w-[500px]">
+            <div className="absolute -inset-4 rounded-[3rem] bg-gold/5 blur-3xl" />
             <motion.div
-              initial={{ opacity: 0, scale: 0.95 }}
+              initial={{ opacity: 0, scale: 0.9 }}
               animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
               className="hero-product-frame overflow-hidden rounded-[2.5rem] bg-navy-deep/40 backdrop-blur-sm"
             >
               <LuxuryProductSlider
