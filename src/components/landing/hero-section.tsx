@@ -52,7 +52,6 @@ export function HeroSection({
       <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(220,40%,20%),transparent_60%)] opacity-40" />
       <div className="pointer-events-none absolute -left-[20%] top-[5%] h-full w-3/4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(80,120,255,0.1),transparent_65%)] opacity-80 blur-3xl" />
       <div className="pointer-events-none absolute -right-[20%] top-[10%] h-full w-3/4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_65%)] opacity-80 blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 bg-grain opacity-[0.1]" />
 
       <div className="relative z-10 mx-auto grid min-h-[100dvh] max-w-[1600px] grid-cols-1 items-center gap-14 px-5 pb-24 pt-[7.25rem] md:gap-20 md:px-10 md:pb-28 md:pt-32 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.08fr)] lg:gap-10 lg:pb-32 xl:px-14">
         {/* Coluna editorial */}
