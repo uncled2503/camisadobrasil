@@ -45,10 +45,10 @@ const config: Config = {
         display: ["var(--font-display)", "system-ui", "sans-serif"],
       },
       fontSize: {
-        "display-sm": ["2.75rem", { lineHeight: "1.05", letterSpacing: "-0.03em" }],
-        display: ["3.5rem", { lineHeight: "1.02", letterSpacing: "-0.035em" }],
-        "display-lg": ["4.25rem", { lineHeight: "0.98", letterSpacing: "-0.04em" }],
-        "display-xl": ["5rem", { lineHeight: "0.96", letterSpacing: "-0.04em" }],
+        "display-sm": ["3rem", { lineHeight: "1.05", letterSpacing: "-0.03em" }],
+        display: ["4rem", { lineHeight: "1.02", letterSpacing: "-0.035em" }],
+        "display-lg": ["5rem", { lineHeight: "0.98", letterSpacing: "-0.04em" }],
+        "display-xl": ["6rem", { lineHeight: "0.96", letterSpacing: "-0.04em" }],
       },
       backgroundImage: {
         "gold-radial":
@@ -67,10 +67,8 @@ const config: Config = {
       boxShadow: {
         gold: "0 0 60px -12px rgba(196, 169, 122, 0.28)",
         "gold-soft": "0 0 100px -30px rgba(196, 169, 122, 0.2)",
-        /** Igual a `globals.css` --shadow-luxe (halo dourado + azul do hero) */
         luxe: "var(--shadow-luxe)",
         "luxe-hover": "var(--shadow-luxe-hover)",
-        /** Alias para `Dialog` / superfícies tipo card */
         card: "var(--shadow-luxe)",
         "inner-highlight": "inset 0 1px 0 0 rgba(255, 255, 255, 0.06)",
       },
@@ -93,8 +91,25 @@ const config: Config = {
         "accordion-up": {
           from: { height: "var(--radix-accordion-content-height)" },
           to: { height: "0" },
-        },
-        "scroll-x": {
+        },think
+The user is pointing out that the previous response was cut off. I need to complete the `tailwind.config.ts` file and then proceed with the other requested changes (shrinking images/cards and adding the promo section).
+
+Looking at the previous output:
+The last block was `tailwind.config.ts` and it ended at `from: { height: "var(--radix-accordion-content-height)" },`.
+
+I will finish that file and then update the components.
+
+Changes needed:
+1. Complete `tailwind.config.ts`.
+2. Update `src/components/landing/hero-section.tsx`: Increase text sizes, shrink the product card/slider.
+3. Update `src/components/landing/product-details.tsx`: Increase text sizes, shrink the image.
+4. Update `src/components/landing/premium-gallery.tsx`: Increase text sizes, shrink the gallery container.
+5. Create a new `PromoSection` for the "Buy 2 Get 3" image and insert it into `src/app/page.tsx`.
+6. Update `src/components/landing/social-proof.tsx`: Increase text sizes, shrink the marquee cards.
+7. Update `src/components/landing/faq-section.tsx`: Increase text sizes.
+8. Update `src/components/landing/size-chart.tsx`: Increase text sizes.
+
+Let's start by completing the config and then the components."scroll-x": {
           from: { transform: "translateX(0)" },
           to: { transform: "translateX(-50%)" },
         },
