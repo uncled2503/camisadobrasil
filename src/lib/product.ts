@@ -7,19 +7,19 @@ export const PRODUCT = {
   currency: "BRL",
 } as const;
 
-/** Vídeo do hero — coloque o ficheiro em `public/videos/`. */
-export const HERO_PRODUCT_VIDEO_SRC = "/videos/camisa-hero-360.mp4" as const;
+/** GIF do hero — coloque o ficheiro em `public/videos/`. */
+export const HERO_PRODUCT_GIF_SRC = "/videos/camisa-hero-360.gif" as const;
 
 /** Imagem de poster / LCP enquanto o vídeo carrega (e para OG). */
 export const HERO_PRODUCT_POSTER_SRC =
   "/images/camisa-hero-produto-isolado.png" as const;
 
-/** Hero do card — só vídeo em loop (sem slides de imagem). */
+/** Hero do card — só GIF em loop (sem slides de imagem). */
 export const HERO_PRODUCT_SLIDES = [
   {
-    src: HERO_PRODUCT_VIDEO_SRC,
-    alt: "Camisa do Brasil em vídeo contínuo",
-    media: "video" as const,
+    src: HERO_PRODUCT_GIF_SRC,
+    alt: "Camisa do Brasil em GIF animado",
+    media: "image" as const, // Tratar GIF como imagem para o componente
     posterSrc: HERO_PRODUCT_POSTER_SRC,
   },
 ] as const;
