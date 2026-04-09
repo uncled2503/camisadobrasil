@@ -12,6 +12,7 @@ import { FaqSection } from "@/components/landing/faq-section";
 import { FinalCta } from "@/components/landing/final-cta";
 import { StickyBuyBar } from "@/components/landing/sticky-buy-bar";
 import { SiteNavDesktop, SiteNavMobile, CartButton } from "@/components/landing/site-nav";
+import { AnnouncementBar } from "@/components/landing/announcement-bar";
 import { CartDialog } from "@/components/purchase/cart-dialog";
 import { PRODUCT, PRODUCT_IMAGE_SRC } from "@/lib/product";
 import type { Size, CartItem } from "@/lib/types";
@@ -62,6 +63,7 @@ export default function HomePage() {
   return (
     <>
       <header className="fixed left-0 right-0 top-0 z-40 border-b border-white/[0.05] bg-[hsl(222,48%,3%)]/82 backdrop-blur-2xl">
+        <AnnouncementBar />
         <div className="mx-auto flex h-[3.75rem] max-w-[1600px] items-center gap-3 px-5 md:gap-6 md:px-10 xl:px-14">
           <a
             href="#inicio"
@@ -82,7 +84,7 @@ export default function HomePage() {
         </div>
       </header>
 
-      <main id="main" className="relative flex-1 pb-24 md:pb-0">
+      <main id="main" className="relative flex-1 pb-24 md:pb-0 pt-8 sm:pt-10">
         <HeroSection
           selectedSize={selectedSize}
           onSizeChange={setSelectedSize}
