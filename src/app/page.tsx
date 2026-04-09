@@ -113,7 +113,7 @@ export default function HomePage() {
         </p>
         <p className="mx-auto mt-4 max-w-sm text-xs leading-relaxed text-muted-foreground/85">
           Página de produto único. Pagamento Pix integrado em breve ao fluxo de checkout.
-        p>
+        </p>
       </footer>
 
       <StickyBuyBar onAddToCart={handleAddToCart} />
