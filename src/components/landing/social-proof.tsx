@@ -11,48 +11,56 @@ const reviews = [
     text: "Acabamento impecável. Parece peça de coleção.",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/1.jpg",
+    imageSrc: "/images/testimonials/1.png",
   },
   {
     name: "Juliana C.",
     text: "O caimento valoriza demais. Cor vibrante na medida.",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/2.jpg",
+    imageSrc: "/images/testimonials/2.png",
   },
   {
     name: "Diego A.",
     text: "Leve, confortável e com presença. Virou minha favorita.",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/3.jpg",
+    imageSrc: "/images/testimonials/3.png",
   },
   {
     name: "Beatriz L.",
     text: "Qualidade surpreendente pelo preço. Recomendo!",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/6.jpg",
+    imageSrc: "/images/testimonials/4.png",
   },
   {
     name: "Lucas S.",
     text: "Design moderno, foge do óbvio. Chegou rápido.",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/4.jpg",
+    imageSrc: "/images/testimonials/5.png",
   },
   {
     name: "Fernanda O.",
     text: "A estampa é muito mais bonita ao vivo. Amei!",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/7.jpg",
+    imageSrc: "/images/testimonials/1.png",
   },
   {
     name: "Carlos E.",
     text: "Material de primeira, não esquenta. Ótima compra.",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/5.jpg",
+    imageSrc: "/images/testimonials/2.png",
   },
   {
     name: "Mariana P.",
     text: "Veste super bem, modelagem perfeita. Comprarei de novo.",
     rating: 5,
     profileImageSrc: "/images/testimonials/profiles/8.jpg",
+    imageSrc: "/images/testimonials/3.png",
   },
 ];
 
@@ -101,28 +109,39 @@ function ReviewMarquee({
         {[...reviews, ...reviews].map((r, i) => (
           <figure
             key={`${r.name}-${i}`}
-            className="glass-dark w-[300px] shrink-0 rounded-2xl p-6 transition-all duration-300 hover:!border-white/[0.12] hover:!shadow-luxe-hover md:w-[340px]"
+            className="glass-dark w-[300px] shrink-0 overflow-hidden rounded-2xl transition-all duration-300 hover:!border-white/[0.12] hover:!shadow-luxe-hover md:w-[340px]"
           >
-            <div className="flex items-center gap-4">
-              <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
-                <Image
-                  src={r.profileImageSrc}
-                  alt={`Foto de perfil de ${r.name}`}
-                  fill
-                  className="object-cover"
-                  sizes="48px"
-                />
-              </div>
-              <div>
-                <p className="font-display text-sm font-semibold tracking-tight">{r.name}</p>
-                <div className="mt-1">
-                  <Stars n={r.rating} />
+            <div className="relative aspect-[4/3] w-full">
+              <Image
+                src={r.imageSrc}
+                alt={`Foto do produto enviada por ${r.name}`}
+                fill
+                className="object-cover"
+                sizes="(max-width: 768px) 80vw, 340px"
+              />
+            </div>
+            <div className="p-6">
+              <div className="flex items-center gap-4">
+                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
+                  <Image
+                    src={r.profileImageSrc}
+                    alt={`Foto de perfil de ${r.name}`}
+                    fill
+                    className="object-cover"
+                    sizes="48px"
+                  />
+                </div>
+                <div>
+                  <p className="font-display text-sm font-semibold tracking-tight">{r.name}</p>
+                  <div className="mt-1">
+                    <Stars n={r.rating} />
+                  </div>
                 </div>
               </div>
+              <blockquote className="relative z-10 mt-4 text-[15px] leading-relaxed text-foreground/95">
+                {r.text}
+              </blockquote>
             </div>
-            <blockquote className="relative z-10 mt-4 text-[15px] leading-relaxed text-foreground/95">
-              {r.text}
-            </blockquote>
           </figure>
         ))}
       </div>
