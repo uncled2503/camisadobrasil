@@ -130,7 +130,6 @@ export function PremiumGallery() {
                   className="object-cover object-center"
                   sizes="(max-width: 1024px) 100vw, 72vw"
                   priority={active === 0}
-                  quality={90}
                 />
               )}
             </motion.div>
@@ -183,7 +182,6 @@ export function PremiumGallery() {
                     fill
                     className="object-contain object-center"
                     sizes="(max-width: 1280px) 96vw, 1200px"
-                    quality={95}
                   />
                 </div>
               )}
