@@ -4,7 +4,23 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
-import { ChevronLeft, Lock, ShieldCheck, CreditCard, QrCode, Truck, Star, TicketPercent } from "lucide-react";
+import { 
+  ChevronLeft, 
+  Lock, 
+  ShieldCheck, 
+  CreditCard, 
+  QrCode, 
+  Truck, 
+  Star, 
+  TicketPercent, 
+  PenTool, 
+  Gift, 
+  ShieldAlert, 
+  Users, 
+  Award, 
+  Key,
+  Check
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PRODUCT, PRODUCT_IMAGE_MAIN_SRC } from "@/lib/product";
 import { cn } from "@/lib/utils";
@@ -29,32 +45,91 @@ const InputGroup = ({ label, placeholder, type = "text", className }: { label: s
   </div>
 );
 
+const ORDER_BUMPS = [
+  {
+    id: "personalization",
+    title: "Personalização Nome + Número",
+    offer: "Adicione seu nome e número favorito nas costas com a fonte oficial da edição.",
+    priceCents: 2990,
+    icon: PenTool
+  },
+  {
+    id: "luxury_box",
+    title: "Embalagem de Luxo Alpha Collector",
+    offer: "Adicione nossa caixa premium com acabamento em hot-stamping dourado e papel seda.",
+    priceCents: 1990,
+    icon: Gift
+  },
+  {
+    id: "shipping_insurance",
+    title: "Seguro Entrega Blindada",
+    offer: "Proteção total contra roubo ou extravio + Prioridade máxima no despacho.",
+    priceCents: 990,
+    icon: ShieldAlert
+  },
+  {
+    id: "gift_second_unit",
+    title: "Presente com Desconto Progressivo",
+    offer: "Leve a 2ª unidade (para presente) por apenas R$ 49,00 adicionais com embrulho.",
+    priceCents: 4900,
+    icon: Users
+  },
+  {
+    id: "champion_patch",
+    title: "Patch de Campeão (Bordado)",
+    offer: "Patch comemorativo de Campeão do Mundo aplicado na manga (veludo e dourado).",
+    priceCents: 1290,
+    icon: Award
+  },
+  {
+    id: "gold_keychain",
+    title: "Chaveiro Réplica Escudo Dourado",
+    offer: "Chaveiro oficial em metal polido banhado a ouro. Um detalhe para o seu dia a dia.",
+    priceCents: 990,
+    icon: Key
+  }
+];
+
 export default function CheckoutPage() {
   const [paymentMethod, setPaymentMethod] = useState<"pix" | "card">("pix");
+  const [selectedBumps, setSelectedBumps] = useState<string[]>([]);
   const searchParams = useSearchParams();
   
-  // Pegamos a quantidade da URL para simular o estado do carrinho nesta demonstração
-  const quantity = parseInt(searchParams.get("q") || "3", 10);
+  const quantity = parseInt(searchParams.get("q") || "1", 10);
   
+  const toggleBump = (id: string) => {
+    setSelectedBumps(prev => 
+      prev.includes(id) ? prev.filter(b => b !== id) : [...prev, id]
+    );
+  };
+
   const pricing = useMemo(() => {
     const unitPrice = PRODUCT.priceCents;
     const subtotal = unitPrice * quantity;
     const freeItems = Math.floor(quantity / 3);
-    const discount = freeItems * unitPrice;
-    const total = subtotal - discount;
+    const itemDiscount = freeItems * unitPrice;
+    
+    const bumpsTotal = ORDER_BUMPS
+      .filter(b => selectedBumps.includes(b.id))
+      .reduce((sum, b) => sum + b.priceCents, 0);
+
+    const total = subtotal - itemDiscount + bumpsTotal;
 
     const format = (cents: number) => 
       new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(cents / 100);
 
     return {
+      subtotalCents: subtotal,
       subtotal: format(subtotal),
-      discount: format(discount),
-      discountValue: discount,
+      discount: format(itemDiscount),
+      discountValue: itemDiscount,
+      bumpsTotalCents: bumpsTotal,
+      bumpsTotal: format(bumpsTotal),
+      totalCents: total,
       total: format(total),
       quantity,
-      freeItems
     };
-  }, [quantity]);
+  }, [quantity, selectedBumps]);
 
   return (
     <div className="min-h-screen bg-[#04070d] text-foreground pb-20">
@@ -80,19 +155,6 @@ export default function CheckoutPage() {
       <main className="mx-auto mt-8 max-w-7xl px-5 lg:mt-12">
         <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
           <div className="space-y-8">
-            <div className="lg:hidden glass-dark overflow-hidden rounded-2xl p-4 flex gap-4">
-              <div className="relative h-20 w-16 shrink-0 overflow-hidden rounded-lg">
-                <Image src={PRODUCT_IMAGE_MAIN_SRC} alt={PRODUCT.name} fill className="object-cover" />
-              </div>
-              <div className="flex flex-col justify-center">
-                <h3 className="text-sm font-bold text-white">{pricing.quantity}x {PRODUCT.name}</h3>
-                <div className="mt-1 flex gap-0.5">
-                   {[...Array(5)].map((_, i) => <Star key={i} className="h-2.5 w-2.5 fill-gold text-gold" />)}
-                </div>
-                <p className="mt-1 text-lg font-bold text-gold-bright">{pricing.total}</p>
-              </div>
-            </div>
-
             <section className="glass-dark rounded-[2rem] p-6 md:p-8">
               <SectionHeader number={1} title="Dados Pessoais" />
               <div className="grid gap-4 md:grid-cols-2">
@@ -115,8 +177,54 @@ export default function CheckoutPage() {
               </div>
             </section>
 
+            {/* Passo 3: Order Bumps */}
             <section className="glass-dark rounded-[2rem] p-6 md:p-8">
-              <SectionHeader number={3} title="Pagamento" />
+              <SectionHeader number={3} title="Turbine seu Pedido" />
+              <p className="mb-6 text-xs text-muted-foreground uppercase tracking-widest font-semibold">Ofertas exclusivas de checkout:</p>
+              <div className="grid gap-3">
+                {ORDER_BUMPS.map((bump) => {
+                  const isSelected = selectedBumps.includes(bump.id);
+                  const Icon = bump.icon;
+                  return (
+                    <button
+                      key={bump.id}
+                      onClick={() => toggleBump(bump.id)}
+                      className={cn(
+                        "group relative flex w-full items-center gap-4 rounded-2xl border p-4 text-left transition-all duration-300",
+                        isSelected 
+                          ? "border-gold/60 bg-gold/10 ring-1 ring-gold/40 shadow-[0_0_20px_rgba(212,175,55,0.15)]" 
+                          : "border-white/5 bg-white/[0.02] hover:border-white/20 hover:bg-white/[0.04]"
+                      )}
+                    >
+                      <div className={cn(
+                        "flex h-12 w-12 shrink-0 items-center justify-center rounded-xl transition-colors",
+                        isSelected ? "bg-gold text-navy-deep" : "bg-white/5 text-gold/60 group-hover:text-gold"
+                      )}>
+                        <Icon size={24} />
+                      </div>
+                      <div className="flex-1 pr-8">
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-sm font-bold text-white tracking-tight">{bump.title}</h4>
+                          <span className="text-xs font-black text-gold-bright">
+                            + {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(bump.priceCents / 100)}
+                          </span>
+                        </div>
+                        <p className="mt-0.5 text-[11px] leading-relaxed text-muted-foreground">{bump.offer}</p>
+                      </div>
+                      <div className={cn(
+                        "absolute right-4 flex h-6 w-6 items-center justify-center rounded-full border transition-all",
+                        isSelected ? "bg-gold border-gold" : "border-white/10"
+                      )}>
+                        {isSelected && <Check size={14} className="text-navy-deep font-bold" />}
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </section>
+
+            <section className="glass-dark rounded-[2rem] p-6 md:p-8">
+              <SectionHeader number={4} title="Pagamento" />
               <div className="grid grid-cols-2 gap-3 mb-8">
                 <button 
                   onClick={() => setPaymentMethod("pix")}
@@ -155,10 +263,6 @@ export default function CheckoutPage() {
                       <p className="mt-1 text-xs text-muted-foreground">O código PIX será gerado após clicar em "Finalizar Compra"</p>
                     </div>
                   </div>
-                  <div className="rounded-2xl bg-white/[0.03] border border-white/10 p-4 flex items-center gap-4">
-                    <ShieldCheck size={18} className="text-gold" />
-                    <p className="text-[11px] font-medium text-muted-foreground uppercase tracking-wider">Pagamento 100% Seguro</p>
-                  </div>
                 </div>
               ) : (
                 <div className="grid gap-4">
@@ -186,7 +290,7 @@ export default function CheckoutPage() {
               
               <div className="space-y-4 mb-8">
                 <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Produtos ({pricing.quantity} itens)</span>
+                  <span className="text-muted-foreground">Camisas ({pricing.quantity} un)</span>
                   <span className="text-white font-medium">{pricing.subtotal}</span>
                 </div>
                 
@@ -197,6 +301,13 @@ export default function CheckoutPage() {
                       Oferta Leve 3 Pague 2
                     </div>
                     <span className="text-green-500 font-bold">- {pricing.discount}</span>
+                  </div>
+                )}
+
+                {pricing.bumpsTotalCents > 0 && (
+                  <div className="flex justify-between text-sm animate-in fade-in slide-in-from-top-1">
+                    <span className="text-gold font-semibold">Complementos de Elite</span>
+                    <span className="text-gold font-bold">+ {pricing.bumpsTotal}</span>
                   </div>
                 )}
 
@@ -224,21 +335,8 @@ export default function CheckoutPage() {
                   <Lock size={16} className="text-gold" />
                   <span className="text-[10px] font-bold uppercase tracking-widest">Checkout Seguro SSL</span>
                 </div>
-                <div className="flex items-center gap-3 text-muted-foreground">
-                  <Truck size={16} className="text-gold" />
-                  <span className="text-[10px] font-bold uppercase tracking-widest">Entrega Segurada</span>
-                </div>
               </div>
             </div>
-
-            <footer className="mt-8 text-center px-4">
-              <p className="text-[9px] text-muted-foreground leading-relaxed uppercase tracking-widest">
-                Seus dados pessoais serão usados para processar seu pedido, apoiar sua experiência em todo este site e para outros fins descritos em nossa política de privacidade.
-              </p>
-              <p className="mt-4 text-[9px] text-muted-foreground/50 uppercase tracking-[0.2em]">
-                © {new Date().getFullYear()} ALPHA BRASIL · TODOS OS DIREITOS RESERVADOS
-              </p>
-            </footer>
           </aside>
         </div>
       </main>
