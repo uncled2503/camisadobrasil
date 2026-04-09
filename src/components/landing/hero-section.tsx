@@ -5,7 +5,6 @@ import { useRef } from "react";
 import { Button } from "@/components/ui/button";
 import { LuxuryProductSlider } from "@/components/ui/luxury-product-slider";
 import { PRODUCT, SIZES, HERO_PRODUCT_SLIDES, type Size } from "@/lib/product";
-import { ParallaxBg } from "@/components/landing/parallax-bg";
 import { useMobileParallaxOff } from "@/hooks/use-is-mobile-parallax";
 import { cn } from "@/lib/utils";
 
@@ -52,24 +51,14 @@ export function HeroSection({
     <section
       id="inicio"
       ref={sectionRef}
-      className="relative min-h-[100dvh] overflow-hidden bg-[#04070d]"
+      className="relative min-h-[100dvh] overflow-hidden bg-gradient-to-b from-[hsl(220,40%,8%)] to-[#04070d]"
       aria-labelledby="hero-heading"
     >
       {/* Camadas de atmosfera — profundidade cinematográfica */}
-      <div className="pointer-events-none absolute inset-0 bg-hero-ambient" />
-      <div className="pointer-events-none absolute -left-[20%] top-0 h-[55%] w-[70%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(196,169,122,0.07),transparent_62%)] blur-3xl" />
-      <div className="pointer-events-none absolute inset-0 bg-hero-vignette opacity-[0.92]" />
-      <div className="pointer-events-none absolute inset-0 bg-grain opacity-[0.32]" />
-
-      <ParallaxBg className="opacity-[0.82]">
-        <div className="h-full w-full bg-gold-radial" />
-        <div
-          className="absolute inset-0 opacity-[0.028]"
-          style={{
-            backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23c4a574' stroke-opacity='0.35'%3E%3Cpath d='M0 40h80M40 0v80'/%3E%3C/g%3E%3C/svg%3E")`,
-          }}
-        />
-      </ParallaxBg>
+      <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(ellipse_at_top,hsl(220,40%,20%),transparent_60%)] opacity-40" />
+      <div className="pointer-events-none absolute -left-[20%] top-[5%] h-full w-3/4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(80,120,255,0.1),transparent_65%)] opacity-80 blur-3xl" />
+      <div className="pointer-events-none absolute -right-[20%] top-[10%] h-full w-3/4 rounded-full bg-[radial-gradient(ellipse_at_center,rgba(212,175,55,0.08),transparent_65%)] opacity-80 blur-3xl" />
+      <div className="pointer-events-none absolute inset-0 bg-grain opacity-[0.1]" />
 
       <div className="relative z-10 mx-auto grid min-h-[100dvh] max-w-[1600px] grid-cols-1 items-center gap-14 px-5 pb-24 pt-[7.25rem] md:gap-20 md:px-10 md:pb-28 md:pt-32 lg:grid-cols-[minmax(0,0.95fr)_minmax(0,1.08fr)] lg:gap-10 lg:pb-32 xl:px-14">
         {/* Coluna editorial */}
@@ -204,35 +193,14 @@ export function HeroSection({
           className="order-1 flex min-h-[40vh] items-center justify-center lg:order-2 lg:min-h-[78vh]"
         >
           <div className="relative w-full max-w-[min(100%,28rem)] lg:max-w-[min(100%,36rem)] lg:justify-self-end xl:max-w-[min(100%,40rem)] xl:pr-2">
-            {/* Luz ambiente só atrás do card — não cobre a foto */}
-            <div
-              className="pointer-events-none absolute -left-[18%] top-[8%] h-[72%] w-[95%] rounded-full bg-[radial-gradient(ellipse_at_center,rgba(196,169,122,0.1),transparent_65%)] blur-[48px]"
-              aria-hidden
-            />
-            <div
-              className="pointer-events-none absolute -right-[10%] bottom-[12%] h-40 w-40 rounded-full bg-[radial-gradient(circle,rgba(196,169,122,0.07),transparent_72%)] blur-[40px]"
-              aria-hidden
-            />
-
             <motion.div
               initial={{ opacity: 0, y: 16 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
               className="relative w-full"
             >
-              <div className="relative">
-                {/* Halo dourado difuso atrás do card */}
-                <div
-                  className="pointer-events-none absolute -inset-3 z-0 rounded-[2rem] opacity-95 blur-[44px] md:-inset-4 md:rounded-[2.25rem]"
-                  style={{
-                    background:
-                      "radial-gradient(ellipse 68% 58% at 50% 42%, rgba(212, 175, 55, 0.3), rgba(196, 169, 122, 0.1) 48%, transparent 72%)",
-                  }}
-                  aria-hidden
-                />
-                <div className="relative z-10 hero-product-frame flex flex-col overflow-hidden rounded-[1.75rem] bg-[hsl(222,38%,7%)] md:rounded-[2rem]">
-                {/* Área da foto: sem overlays, sem blur, sem escala no hover */}
-                <div className="relative flex w-full items-center justify-center px-3 pt-2.5 sm:px-5 sm:pt-4">
+              <div className="relative z-10 hero-product-frame flex flex-col overflow-hidden rounded-[1.75rem] bg-black/20 md:rounded-[2rem]">
+                <div className="relative flex w-full items-center justify-center">
                   <div className="relative w-full max-w-[min(100%,520px)] lg:max-w-[min(100%,600px)]">
                     <LuxuryProductSlider
                       images={HERO_PRODUCT_SLIDES}
@@ -241,47 +209,19 @@ export function HeroSection({
                       sizes="(max-width: 640px) 94vw, (max-width: 1024px) 88vw, min(600px, 42vw)"
                       aspectClassName="aspect-[812/1024]"
                       aria-label="Vídeo da camisa em loop"
-                      showPagination={false}
                     >
-                      <div className="relative border-t border-[rgba(212,175,55,0.14)] bg-[linear-gradient(180deg,rgba(212,175,55,0.08)_0%,rgba(0,0,0,0.2)_40%,rgba(0,0,0,0.3)_100%)] px-5 pb-6 pt-4 shadow-[inset_0_1px_0_0_rgba(255,255,255,0.06)] sm:px-8 sm:pb-7 sm:pt-5">
-                        <div className="flex flex-col items-center gap-3 text-center sm:gap-3.5">
-                          {/*
-                            Faixa demarcada: traço + ponto + chip compacto no mesmo bloco
-                            (menos altura, botão menor, subindo para a zona dos acentos).
-                          */}
-                          <div className="flex flex-col items-center gap-2 sm:gap-2">
-                            <div
-                              className="flex items-center justify-center gap-2"
-                              aria-hidden
-                            >
-                              <span className="h-[2px] w-5 rounded-full bg-gradient-to-r from-transparent via-[hsl(38,42%,58%)] to-transparent opacity-90 sm:w-6" />
-                              <span className="h-1 w-1 rounded-full bg-white/[0.18] ring-1 ring-white/25" />
-                            </div>
-                            <div
-                              role="status"
-                              className="inline-flex w-fit shrink-0 items-center justify-center rounded-full border border-[rgba(212,175,55,0.38)] bg-gradient-to-b from-[rgba(212,175,55,0.11)] via-[rgba(196,169,122,0.04)] to-transparent px-3 py-1 shadow-[0_0_22px_-8px_rgba(212,175,55,0.32),inset_0_1px_0_0_rgba(255,255,255,0.1)] sm:px-3.5 sm:py-1"
-                            >
-                              <p className="font-display text-[8px] font-bold uppercase tracking-[0.26em] text-[hsl(42,42%,90%)] sm:text-[9px] sm:tracking-[0.3em]">
-                                Edição de elite
-                              </p>
-                            </div>
-                          </div>
-                          <p className="max-w-[22rem] font-sans text-[9px] font-medium uppercase leading-relaxed tracking-[0.18em] text-white/45 sm:max-w-lg sm:text-[10px] sm:tracking-[0.2em]">
-                            Seleção brasileira &apos;10&apos; · Coleção limitada
+                      <div className="absolute inset-x-0 bottom-0 z-10 bg-gradient-to-t from-black/60 via-black/40 to-transparent p-5 text-center">
+                        <div
+                          role="status"
+                          className="inline-flex items-center justify-center rounded-full border border-gold/30 bg-black/40 px-4 py-1.5 backdrop-blur-sm"
+                        >
+                          <p className="font-display text-[9px] font-bold uppercase tracking-[0.3em] text-gold-bright">
+                            Edição de Elite
                           </p>
-                          <div className="flex flex-wrap items-center justify-center gap-2.5 pt-0.5 sm:pt-1">
-                            <span className="inline-flex items-center rounded-full border border-white/[0.12] bg-gradient-to-b from-white/[0.09] to-white/[0.02] px-3.5 py-1.5 font-sans text-[9px] font-semibold uppercase tracking-[0.22em] text-white/[0.82] shadow-[0_1px_0_rgba(255,255,255,0.06)_inset] backdrop-blur-sm transition-all duration-300 hover:border-white/20 hover:from-white/[0.12] hover:text-white">
-                              Cápsula
-                            </span>
-                            <span className="inline-flex items-center rounded-full border border-[hsl(152,28%,28%)]/50 bg-[linear-gradient(180deg,hsl(152,20%,16%)_0%,hsl(152,22%,10%)_100%)] px-3.5 py-1.5 text-[9px] font-semibold uppercase tracking-[0.22em] text-[hsl(152,32%,76%)] shadow-[0_1px_0_rgba(255,255,255,0.04)_inset] transition-all duration-300 hover:border-[hsl(152,35%,38%)]/60 hover:text-[hsl(152,36%,86%)]">
-                              Brasil
-                            </span>
-                          </div>
                         </div>
                       </div>
                     </LuxuryProductSlider>
                   </div>
-                </div>
                 </div>
               </div>
             </motion.div>
