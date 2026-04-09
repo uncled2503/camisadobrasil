@@ -1,5 +1,6 @@
 "use client";
 
+import Image from "next/image";
 import { motion } from "framer-motion";
 import { Star } from "lucide-react";
 import { SectionReveal, SectionShell } from "@/components/landing/section-shell";
@@ -12,18 +13,21 @@ const reviews = [
     city: "São Paulo, SP",
     text: "Acabamento impecável. Parece peça de coleção — uso e recebo elogio toda vez.",
     rating: 5,
+    imageSrc: "/images/testimonials/1.png",
   },
   {
     name: "Juliana C.",
     city: "Curitiba, PR",
     text: "O caimento valoriza demais. Cor vibrante sem parecer carnival kitsch.",
     rating: 5,
+    imageSrc: "/images/testimonials/2.png",
   },
   {
     name: "Diego A.",
     city: "Belo Horizonte, MG",
     text: "Leve, confortável e com presença forte. Virou minha camisa favorita.",
     rating: 5,
+    imageSrc: "/images/testimonials/3.png",
   },
 ];
 
@@ -77,21 +81,29 @@ export function SocialProof() {
               duration: 0.4,
               ease: [0.22, 1, 0.36, 1],
             }}
-              className="glass-dark group relative overflow-hidden rounded-2xl border border-white/[0.05] p-8 transition-all duration-300 hover:border-white/[0.12] hover:shadow-luxe-hover md:p-9"
+            className="glass-dark group relative flex flex-col overflow-hidden rounded-2xl border border-white/[0.05] p-0 transition-all duration-300 hover:border-white/[0.12] hover:shadow-luxe-hover"
           >
-            <span className="font-display text-5xl font-bold leading-none text-white/[0.04] transition-colors group-hover:text-white/[0.06]">
-              “
-            </span>
-            <Stars n={r.rating} />
-            <blockquote className="relative z-10 mt-5 text-[15px] leading-relaxed text-foreground/95">
-              {r.text}
-            </blockquote>
-            <figcaption className="mt-8 border-t border-white/[0.05] pt-6">
-              <p className="font-display text-sm font-semibold tracking-tight">{r.name}</p>
-              <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
-                {r.city}
-              </p>
-            </figcaption>
+            <div className="relative aspect-[4/5] w-full overflow-hidden">
+              <Image
+                src={r.imageSrc}
+                alt={`Foto do depoimento de ${r.name}`}
+                fill
+                className="object-cover transition-transform duration-500 group-hover:scale-105"
+                sizes="(max-width: 768px) 100vw, 33vw"
+              />
+            </div>
+            <div className="flex flex-1 flex-col p-6 md:p-7">
+              <Stars n={r.rating} />
+              <blockquote className="relative z-10 mt-4 text-[15px] leading-relaxed text-foreground/95">
+                {r.text}
+              </blockquote>
+              <figcaption className="mt-auto border-t border-white/[0.05] pt-5">
+                <p className="font-display text-sm font-semibold tracking-tight">{r.name}</p>
+                <p className="mt-1 text-xs uppercase tracking-[0.2em] text-muted-foreground">
+                  {r.city}
+                </p>
+              </figcaption>
+            </div>
           </motion.figure>
         ))}
       </div>
