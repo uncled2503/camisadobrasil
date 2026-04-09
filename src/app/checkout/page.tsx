@@ -4,6 +4,7 @@ import React, { useState, useMemo } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
+import toast from "react-hot-toast";
 import { 
   ChevronLeft, 
   Lock, 
@@ -159,6 +160,34 @@ export default function CheckoutPage() {
     setFormData(prev => ({ ...prev, [field]: maskFn ? maskFn(value) : value }));
   };
 
+  const handleFinalize = () => {
+    if (paymentMethod === "card") {
+      toast.error("Sistema de Cartão indisponível, refaça a compra via Pix por gentileza!", {
+        duration: 5000,
+        icon: '⚠️',
+        style: {
+          borderRadius: '12px',
+          background: '#060a12',
+          color: '#fff',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+          fontSize: '14px',
+          fontWeight: '600'
+        }
+      });
+      return;
+    }
+    
+    // Lógica para Pix aqui (gerar QR Code etc)
+    toast.success("Gerando seu código Pix de pagamento...", {
+        style: {
+          borderRadius: '12px',
+          background: '#060a12',
+          color: '#fff',
+          border: '1px solid rgba(255, 255, 255, 0.1)',
+        }
+    });
+  };
+
   return (
     <div className="min-h-screen bg-[#04070d] text-foreground pb-20">
       <div className="bg-gradient-to-r from-red-600 to-orange-600 py-1.5 text-center">
@@ -266,7 +295,7 @@ export default function CheckoutPage() {
                 <div className="h-px bg-white/10 my-6" />
                 <div className="flex justify-between items-end"><span className="font-display text-lg font-bold text-white uppercase tracking-tight">Total</span><span className="font-display text-3xl font-bold text-gold-bright tracking-tight">{pricing.total}</span></div>
               </div>
-              <Button size="xl" className="shimmer-btn w-full font-bold uppercase tracking-widest py-8 rounded-2xl">Finalizar Compra</Button>
+              <Button size="xl" onClick={handleFinalize} className="shimmer-btn w-full font-bold uppercase tracking-widest py-8 rounded-2xl">Finalizar Compra</Button>
             </div>
           </aside>
         </div>
