@@ -25,15 +25,15 @@ const faqs = [
   },
   {
     q: "Como funciona o envio?",
-    a: "Preparamos seu pedido com agilidade e envio rastreado. Prazos e regiões serão confirmados no checkout quando a logística estiver ativa.",
+    a: "Preparamos seu pedido com agilidade e envio rastreado. Prazos e regiões são calculados diretamente no checkout.",
   },
   {
     q: "Posso pagar com Pix?",
-    a: "Sim — a experiência de compra está preparada para Pix. A geração do QR e confirmação serão integradas ao gateway em breve.",
+    a: "Sim — a experiência de compra é totalmente integrada ao Pix. O QR Code é gerado instantaneamente no checkout e a confirmação do seu pedido ocorre em poucos segundos após o pagamento.",
   },
   {
     q: "Como funciona a troca?",
-    a: "Política de troca alinhada ao CDC. Detalhes de prazo e condições serão exibidos na página de suporte assim que a operação estiver publicada.",
+    a: "Política de troca alinhada ao CDC. Oferecemos a primeira troca grátis em até 7 dias após o recebimento, garantindo sua total satisfação.",
   },
 ];
 
