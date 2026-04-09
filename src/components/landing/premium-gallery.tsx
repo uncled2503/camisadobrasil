@@ -79,7 +79,7 @@ export function PremiumGallery() {
         </p>
         <h2
           id="gallery-heading"
-          className="font-display text-[clamp(2rem,4vw,3.5rem)] font-bold leading-[1.05] tracking-tight text-balance"
+          className="font-display text-[clamp(2.25rem,4vw,3rem)] font-bold leading-[1.05] tracking-tight text-balance"
         >
           Galeria{" "}
           <span className="bg-gradient-to-r from-gold-bright to-gold-muted bg-clip-text text-transparent">

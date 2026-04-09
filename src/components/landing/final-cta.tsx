@@ -37,7 +37,7 @@ export function FinalCta({ onAddToCart }: FinalCtaProps) {
           </p>
           <h2
             id="final-cta-heading"
-            className="mx-auto mt-6 max-w-4xl font-display text-[clamp(2rem,4.5vw,3.75rem)] font-bold leading-[1.05] tracking-tight text-balance"
+            className="mx-auto mt-6 max-w-4xl font-display text-[clamp(2.5rem,4.5vw,3.5rem)] font-bold leading-[1.05] tracking-tight text-balance"
           >
             Vista a energia do Brasil com o requinte de uma{" "}
             <span className="bg-gradient-to-r from-gold-bright via-gold to-gold-muted bg-clip-text text-transparent">

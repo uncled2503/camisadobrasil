@@ -31,7 +31,7 @@ function NavAnchor({
     <a
       href={href}
       className={cn(
-        "relative py-1 font-sans text-[10.5px] font-semibold uppercase tracking-[0.24em] text-gold/88 transition-colors duration-300 hover:text-gold-bright",
+        "relative py-1 font-sans text-[11px] font-semibold uppercase tracking-[0.24em] text-gold/88 transition-colors duration-300 hover:text-gold-bright",
         "after:pointer-events-none after:absolute after:bottom-0 after:left-1/2 after:h-px after:w-9 after:-translate-x-1/2 after:bg-gradient-to-r after:from-transparent after:via-[hsl(38,38%,48%)] after:to-transparent after:opacity-0 after:transition-opacity after:duration-300 hover:after:opacity-100",
         "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/35 focus-visible:ring-offset-2 focus-visible:ring-offset-[hsl(222,48%,3%)]",
         className

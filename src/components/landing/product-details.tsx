@@ -59,7 +59,7 @@ export function ProductDetails() {
               </p>
               <h2
                 id="details-heading"
-                className="mt-5 font-display text-[clamp(2rem,4vw,3.25rem)] font-bold leading-[1.08] tracking-tight text-balance text-foreground"
+                className="mt-5 font-display text-[clamp(2.25rem,4vw,3rem)] font-bold leading-[1.08] tracking-tight text-balance text-foreground"
               >
                 Feita para{" "}
                 <span className="bg-gradient-to-r from-gold-bright to-gold-muted bg-clip-text text-transparent">

@@ -64,7 +64,7 @@ export function HeroSection({
               initial={{ opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.45 }}
-              className="mb-8 font-sans text-[0.65rem] font-semibold uppercase tracking-[0.38em] text-[hsl(38,28%,52%)] md:mb-9 md:text-[0.7rem] md:tracking-[0.42em]"
+              className="mb-8 font-sans text-[11px] font-semibold uppercase tracking-[0.38em] text-[hsl(38,28%,52%)] md:mb-9 md:tracking-[0.42em]"
             >
               Cápsula · {PRODUCT.shortName}
             </motion.p>

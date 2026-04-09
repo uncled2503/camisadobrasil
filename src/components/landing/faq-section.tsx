@@ -53,7 +53,7 @@ export function FaqSection() {
         </p>
         <h2
           id="faq-heading"
-          className="mt-4 font-display text-[clamp(2rem,3.5vw,2.75rem)] font-bold leading-tight tracking-tight"
+          className="mt-4 font-display text-[clamp(2.25rem,4vw,3rem)] font-bold leading-tight tracking-tight"
         >
           Perguntas{" "}
           <span className="bg-gradient-to-r from-gold-bright to-gold-muted bg-clip-text text-transparent">

@@ -36,7 +36,7 @@ export function StickyBuyBar({ onAddToCart }: StickyBuyBarProps) {
           <div className="border-t border-white/[0.1] bg-[hsl(222,48%,3%)]/92 px-4 py-3.5 pb-[max(0.85rem,env(safe-area-inset-bottom))] shadow-[0_-24px_64px_-24px_rgba(0,0,0,0.72),0_0_52px_-20px_rgba(32,76,180,0.2),0_0_72px_-28px_rgba(212,175,55,0.09)] backdrop-blur-2xl">
             <div className="mx-auto flex max-w-lg items-center justify-between gap-5">
               <div>
-                <p className="text-[9px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
+                <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
                   Brasil Estilizada
                 </p>
                 <p className="mt-0.5 font-display text-[1.35rem] font-bold tabular-nums tracking-tight text-gold-bright">
