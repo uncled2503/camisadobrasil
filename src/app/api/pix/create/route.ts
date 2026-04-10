@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server";
+import { extractPixGatewayPayload } from "@/lib/pix-gateway-response";
 
 const GATEWAY_URL = "https://api.royalbanking.com.br/v1/gateway/";
 
@@ -19,13 +20,33 @@ function onlyDigits(s: string) {
   return s.replace(/\D/g, "");
 }
 
+function webhookPath() {
+  return "/api/webhooks/royalbanking/pix";
+}
+
+/**
+ * URL pública do webhook (Cash In).
+ * SITE_URL / APP_URL são lidos em runtime (definir na Vercel sem prefixo NEXT_PUBLIC).
+ * NEXT_PUBLIC_APP_URL só entra num novo build depois de definida no painel.
+ */
 function resolveCallbackUrl(): string | null {
   const explicit = process.env.ROYALBANKING_PIX_CALLBACK_URL?.trim();
   if (explicit) return explicit;
-  const base = process.env.NEXT_PUBLIC_APP_URL?.trim();
-  if (base) {
-    return `${base.replace(/\/$/, "")}/api/webhooks/royalbanking/pix`;
+
+  const site =
+    process.env.SITE_URL?.trim() ||
+    process.env.APP_URL?.trim() ||
+    process.env.NEXT_PUBLIC_APP_URL?.trim();
+  if (site) {
+    return `${site.replace(/\/$/, "")}${webhookPath()}`;
   }
+
+  const vercel = process.env.VERCEL_URL?.trim();
+  if (vercel) {
+    const origin = vercel.startsWith("http") ? vercel : `https://${vercel}`;
+    return `${origin.replace(/\/$/, "")}${webhookPath()}`;
+  }
+
   return null;
 }
 
@@ -33,11 +54,20 @@ export async function POST(request: Request) {
   const apiKey = process.env.ROYALBANKING_API_KEY;
   const callbackUrl = resolveCallbackUrl();
 
-  if (!apiKey?.trim() || !callbackUrl) {
+  if (!apiKey?.trim()) {
     return NextResponse.json(
       {
         error:
-          "Configure ROYALBANKING_PIX_CALLBACK_URL ou NEXT_PUBLIC_APP_URL (ex.: https://seudominio.com) no .env.local",
+          "Configure ROYALBANKING_API_KEY no ambiente (Vercel → Settings → Environment Variables).",
+      },
+      { status: 503 }
+    );
+  }
+  if (!callbackUrl) {
+    return NextResponse.json(
+      {
+        error:
+          "URL do webhook não definida. Na Vercel: SITE_URL ou NEXT_PUBLIC_APP_URL = https://camisa-brasil-landing.vercel.app (ou ROYALBANKING_PIX_CALLBACK_URL completo). Faça Redeploy após alterar variáveis.",
       },
       { status: 503 }
     );
@@ -107,5 +137,14 @@ export async function POST(request: Request) {
     return NextResponse.json(data, { status: upstream.status });
   }
 
-  return NextResponse.json(data);
+  const obj =
+    typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
+  const normalized = extractPixGatewayPayload(obj);
+
+  return NextResponse.json({
+    ...obj,
+    paymentCode: normalized.paymentCode,
+    paymentCodeBase64: normalized.paymentCodeBase64,
+    ...(normalized.idTransaction ? { idTransaction: normalized.idTransaction } : {}),
+  });
 }

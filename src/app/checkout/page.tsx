@@ -38,6 +38,7 @@ import {
   useRetentionDiscountOnTotal,
   useRetentionBannerCountdown,
 } from "@/hooks/use-checkout-retention";
+import { extractPixGatewayPayload, qrDataUrlForImg } from "@/lib/pix-gateway-response";
 
 // Funções de máscara para campos de formulário
 const maskCPF = (value: string) => {
@@ -177,6 +178,11 @@ function CheckoutContent() {
     paymentCodeBase64: string;
     idTransaction?: string;
   } | null>(null);
+
+  const pixQrDataUrl = useMemo(
+    () => (pixResult?.paymentCodeBase64 ? qrDataUrlForImg(pixResult.paymentCodeBase64) : null),
+    [pixResult?.paymentCodeBase64]
+  );
 
   const searchParams = useSearchParams();
   const rawQ = parseInt(searchParams.get("q") || "1", 10);
@@ -320,20 +326,16 @@ function CheckoutContent() {
         }),
       });
 
-      const data = (await res.json()) as {
-        status?: string;
-        paymentCode?: string;
-        paymentCodeBase64?: string;
-        idTransaction?: string;
-        message?: string;
-        error?: string;
-      };
+      const raw = (await res.json()) as Record<string, unknown>;
+      const data = extractPixGatewayPayload(raw);
 
       if (!res.ok) {
         const msg =
-          typeof data.error === "string"
-            ? data.error
-            : data.message || `Erro ${res.status} ao gerar Pix.`;
+          typeof raw.error === "string"
+            ? raw.error
+            : typeof raw.message === "string"
+              ? raw.message
+              : `Erro ${res.status} ao gerar Pix.`;
         throw new Error(msg);
       }
 
@@ -343,7 +345,7 @@ function CheckoutContent() {
 
       setPixResult({
         paymentCode: data.paymentCode,
-        paymentCodeBase64: data.paymentCodeBase64 ?? "",
+        paymentCodeBase64: data.paymentCodeBase64,
         idTransaction: data.idTransaction,
       });
       toast.success("Pix gerado! Escaneie o QR ou copie o código.");
@@ -699,11 +701,11 @@ function CheckoutContent() {
                   <p className="text-center font-display text-[10px] font-bold uppercase tracking-[0.28em] text-gold-bright">
                     Pague com Pix
                   </p>
-                  {pixResult.paymentCodeBase64 ? (
+                  {pixQrDataUrl ? (
                     <div className="relative mx-auto aspect-square w-full max-w-[220px] overflow-hidden rounded-xl border border-white/10 bg-white p-2">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img
-                        src={`data:image/png;base64,${pixResult.paymentCodeBase64}`}
+                        src={pixQrDataUrl}
                         alt="QR Code Pix"
                         className="h-full w-full object-contain"
                       />
