@@ -5,6 +5,12 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  async redirects() {
+    return [
+      { source: "/dashboard", destination: "/admin", permanent: true },
+      { source: "/dashboard/:path*", destination: "/admin/:path*", permanent: true },
+    ];
+  },
   /**
    * O Segment Explorer (default em Next 15.5) injeta `SegmentViewNode` no RSC e tem causado
    * erros de manifest / `__webpack_modules__` em dev, com páginas sem CSS após Fast Refresh.

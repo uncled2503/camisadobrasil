@@ -78,11 +78,11 @@ const maskCardExpiry = (value: string) => {
 const maskCVV = (value: string) => value.replace(/\D/g, "").slice(0, 4);
 
 const SectionHeader = ({ number, title }: { number: number; title: string }) => (
-  <div className="flex items-center gap-3 mb-6">
-    <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold text-navy-deep font-bold text-sm">
+  <div className="mb-6 flex min-w-0 items-center gap-3">
+    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy-deep">
       {number}
     </div>
-    <h2 className="font-display text-lg font-bold uppercase tracking-tight text-white">{title}</h2>
+    <h2 className="min-w-0 font-display text-lg font-bold uppercase tracking-tight text-white">{title}</h2>
   </div>
 );
 
@@ -479,7 +479,7 @@ function CheckoutContent() {
 
   return (
     <motion.div
-      className="min-h-screen bg-[#04070d] text-foreground pb-20"
+      className="min-h-screen w-full max-w-full overflow-x-clip bg-[#04070d] text-foreground pb-20"
       initial={{ opacity: 0.9 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5, ease: [0.22, 1, 0.36, 1] }}
@@ -667,18 +667,18 @@ function CheckoutContent() {
                       >
                         <button 
                           onClick={() => toggleBump(bump.id)} 
-                          className="flex w-full items-center gap-4 p-4 text-left"
+                          className="flex w-full min-w-0 items-center gap-4 p-4 text-left"
                         >
                           <div className="relative h-16 w-16 shrink-0 overflow-hidden rounded-xl border border-white/10">
                             <Image src={bump.image} alt={bump.title} fill className="object-cover" sizes="64px" />
                           </div>
-                          <div className="flex-1">
+                          <div className="min-w-0 flex-1">
                             <h4 className="text-sm font-bold text-white">{bump.title}</h4>
-                            <p className="mt-1 text-[13px] leading-snug text-muted-foreground/95 sm:text-[15px] sm:leading-relaxed">
+                            <p className="mt-1 break-words text-[13px] leading-snug text-muted-foreground/95 sm:text-[15px] sm:leading-relaxed">
                               {bump.offer}
                             </p>
                           </div>
-                          <div className="text-right">
+                          <div className="shrink-0 text-right">
                             <p className="text-[10px] font-bold text-gold-bright uppercase">
                               {bump.id === "personalization" && quantity > 1
                                 ? `+ ${new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(bump.priceCents / 100)} × ${quantity}`
@@ -847,7 +847,7 @@ function CheckoutContent() {
                   </p>
                   {pixQrDataUrl ? (
                     <div className="flex w-full justify-center px-1">
-                      <div className="relative aspect-square w-full max-w-[min(220px,calc(100vw-3rem))] overflow-hidden rounded-xl border border-white/10 bg-white p-2 sm:max-w-[220px]">
+                      <div className="relative aspect-square w-full max-w-[min(220px,100%)] overflow-hidden rounded-xl border border-white/10 bg-white p-2 sm:max-w-[220px]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
                           src={pixQrDataUrl}

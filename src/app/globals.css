@@ -40,6 +40,8 @@
   html {
     scroll-behavior: smooth;
     scroll-padding-top: 4rem;
+    overflow-x: clip;
+    background-color: #04070d;
   }
 
   body {
