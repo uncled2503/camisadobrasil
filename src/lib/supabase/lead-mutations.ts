@@ -36,7 +36,11 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus): Prom
   const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
   const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
   if (!url || !anon) {
-    return { ok: false, error: "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no .env.local." };
+    return {
+      ok: false,
+      error:
+        "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY (.env.local ou variáveis de ambiente na Vercel).",
+    };
   }
 
   const client = clientForWrite();

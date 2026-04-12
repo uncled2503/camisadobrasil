@@ -28,7 +28,11 @@ function friendlyMessage(message: string, code?: string): string {
 
 export async function fetchAdminLeads(): Promise<AdminFetchResult<Lead[]>> {
   if (!isSupabasePublicEnvConfigured()) {
-    return { ok: false, error: "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no .env.local." };
+    return {
+      ok: false,
+      error:
+        "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY (.env.local ou variáveis de ambiente na Vercel).",
+    };
   }
 
   const { data, error } = await supabase.from("leads").select("*").limit(ROW_LIMIT);
@@ -44,7 +48,11 @@ export async function fetchAdminLeads(): Promise<AdminFetchResult<Lead[]>> {
 
 export async function fetchAdminVendas(): Promise<AdminFetchResult<Sale[]>> {
   if (!isSupabasePublicEnvConfigured()) {
-    return { ok: false, error: "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no .env.local." };
+    return {
+      ok: false,
+      error:
+        "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY (.env.local ou variáveis de ambiente na Vercel).",
+    };
   }
 
   const { data, error } = await supabase.from("vendas").select("*").limit(ROW_LIMIT);
@@ -60,7 +68,11 @@ export async function fetchAdminVendas(): Promise<AdminFetchResult<Sale[]>> {
 
 export async function fetchAdminClientes(): Promise<AdminFetchResult<Client[]>> {
   if (!isSupabasePublicEnvConfigured()) {
-    return { ok: false, error: "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY no .env.local." };
+    return {
+      ok: false,
+      error:
+        "Configure NEXT_PUBLIC_SUPABASE_URL e NEXT_PUBLIC_SUPABASE_ANON_KEY (.env.local ou variáveis de ambiente na Vercel).",
+    };
   }
 
   const { data, error } = await supabase.from("clientes").select("*").limit(ROW_LIMIT);
