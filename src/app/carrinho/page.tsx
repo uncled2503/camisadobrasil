@@ -246,7 +246,7 @@ function CarrinhoContent() {
 
               <span className="font-display text-lg font-bold text-white">Total</span>
 
-              <span className="font-display text-2xl font-bold tracking-tight text-gold-bright">{pricing.totalFormatted}</span>
+              <span className="price-gold-glow font-display text-2xl font-bold tracking-tight text-gold-bright">{pricing.totalFormatted}</span>
 
             </div>
 

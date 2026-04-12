@@ -186,7 +186,7 @@ export function LandingCartDialog({
               <div className="h-px bg-white/10" />
               <div className="flex items-end justify-between">
                 <span className="font-display text-base font-bold text-white">Total</span>
-                <span className="font-display text-2xl font-bold tracking-tight text-gold-bright">
+                <span className="price-gold-glow font-display text-2xl font-bold tracking-tight text-gold-bright">
                   {pricing.totalFormatted}
                 </span>
               </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, Suspense } from "react";
+import React, { useState, useMemo, useEffect, useRef, Suspense } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -40,7 +40,13 @@ import {
   useRetentionBannerCountdown,
 } from "@/hooks/use-checkout-retention";
 import { usePixPaymentConfirmation } from "@/hooks/use-pix-payment-confirmation";
-import { extractPixGatewayPayload, qrDataUrlForImg } from "@/lib/pix-gateway-response";
+import {
+  extractPixGatewayPayload,
+  formatRoyalBankingMinPixAmountPt,
+  humanizePixGatewayError,
+  isPixAmountBelowGatewayMin,
+  qrDataUrlForImg,
+} from "@/lib/pix-gateway-response";
 import { savePosCompraPixClient } from "@/lib/pos-compra-pix-storage";
 
 // Funções de máscara para campos de formulário
@@ -345,6 +351,41 @@ function CheckoutContent() {
     estado: formData.estado.replace(/\s/g, "").toUpperCase(),
   });
 
+  const pixAutoRedirectDoneRef = useRef(false);
+  useEffect(() => {
+    pixAutoRedirectDoneRef.current = false;
+  }, [pixResult?.idTransaction]);
+
+  useEffect(() => {
+    if (paymentMethod !== "pix") return;
+    if (!pixResult?.paymentCode?.trim()) return;
+    if (!(pixResult.idTransaction ?? "").trim()) return;
+    if (!pixTrackingAvailable || !pixPaymentConfirmed) return;
+    if (pixAutoRedirectDoneRef.current) return;
+    pixAutoRedirectDoneRef.current = true;
+    savePosCompraPixClient(buildPosCompraClientPayload());
+    toast.success("Pagamento confirmado!");
+    router.push(POS_COMPRA.upsellVip);
+  }, [
+    paymentMethod,
+    pixResult?.paymentCode,
+    pixResult?.idTransaction,
+    pixTrackingAvailable,
+    pixPaymentConfirmed,
+    router,
+    formData.name,
+    formData.email,
+    formData.phone,
+    formData.cpf,
+    formData.cep,
+    formData.endereco,
+    formData.numero,
+    formData.complemento,
+    formData.bairro,
+    formData.cidade,
+    formData.estado,
+  ]);
+
   const lookupCepDigits = async (digits: string) => {
     if (digits.length !== 8) return;
     setCepLookupBusy(true);
@@ -519,14 +560,41 @@ function CheckoutContent() {
       return;
     }
 
+    const amount = Number((finalTotalCents / 100).toFixed(2));
+    if (isPixAmountBelowGatewayMin(amount)) {
+      toast.error(
+        `O Pix só pode ser gerado a partir de ${formatRoyalBankingMinPixAmountPt()}. Aumente o pedido ou use cartão.`
+      );
+      return;
+    }
+
+    const cepDigits = formData.cep.replace(/\D/g, "");
+    const estadoChk = formData.estado.replace(/\s/g, "").toUpperCase();
+    const shippingSummaryPix =
+      cepDigits.length === 8 &&
+      formData.endereco.trim() &&
+      formData.numero.trim() &&
+      formData.bairro.trim() &&
+      formData.cidade.trim() &&
+      estadoChk.length === 2 &&
+      /^[A-Z]{2}$/.test(estadoChk)
+        ? `${cepDigits.slice(0, 5)}-${cepDigits.slice(5)} · ${formData.endereco.trim()}, ${formData.numero.trim()}${
+            formData.complemento.trim() ? ` — ${formData.complemento.trim()}` : ""
+          } · ${formData.bairro.trim()} · ${formData.cidade.trim()}/${estadoChk}`
+        : undefined;
+
+    const productSummaryPix = `${PRODUCT.name} (${quantity} un. · Tam.: ${orderSizes.join(", ")})`;
+
     setPixLoading(true);
     try {
-      const amount = Number((finalTotalCents / 100).toFixed(2));
       const res = await fetch("/api/pix/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
+          amountCents: finalTotalCents,
+          productSummary: productSummaryPix,
+          ...(shippingSummaryPix ? { shippingSummary: shippingSummaryPix } : {}),
           client: {
             name,
             document: docDigits,
@@ -540,13 +608,17 @@ function CheckoutContent() {
       const data = extractPixGatewayPayload(raw);
 
       if (!res.ok) {
+        const humanized = humanizePixGatewayError(raw);
+        const rawErr = typeof raw.error === "string" ? raw.error : "";
+        const rawMsg = typeof raw.message === "string" ? raw.message : "";
         const fromGateway =
-          typeof raw.error === "string"
-            ? raw.error
-            : typeof raw.message === "string"
-              ? raw.message
+          rawErr && !rawErr.startsWith("validation.")
+            ? rawErr
+            : rawMsg && !rawMsg.startsWith("validation.")
+              ? rawMsg
               : "";
         const msg =
+          humanized ||
           fromGateway ||
           (res.status === 401 || res.status === 403
             ? "Chave da Royal Banking inválida (401). Atualize ROYALBANKING_API_KEY e reinicie o npm run dev."
@@ -794,11 +866,6 @@ function CheckoutContent() {
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  <p className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-[11px] leading-relaxed text-amber-100/90">
-                    Por segurança e conformidade (PCI), o número completo e o CVV <strong>não</strong> são gravados no
-                    banco — apenas os <strong>últimos 4 dígitos</strong>, validade, titular e o valor do pedido, para a
-                    equipa acompanhar no painel.
-                  </p>
                   <InputGroup
                     label="Número do Cartão"
                     placeholder="0000 0000 0000 0000"
@@ -1022,7 +1089,7 @@ function CheckoutContent() {
                 <div className="my-6 h-px bg-white/10" />
                 <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
                   <span className="shrink-0 font-display text-lg font-bold text-white">Total Hoje:</span>
-                  <span className="min-w-0 break-words text-right font-display text-2xl font-bold tabular-nums tracking-tight text-gold-bright sm:text-3xl">
+                  <span className="price-gold-glow min-w-0 break-words text-right font-display text-2xl font-bold tabular-nums tracking-tight text-gold-bright sm:text-3xl">
                     {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(finalTotalCents / 100)}
                   </span>
                 </div>

@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 
-const POLL_MS = 3000;
+const POLL_MS = 2000;
 
 export type PixPaymentConfirmation = {
   /** True quando o webhook gravou `paid` no Supabase para este id. */

@@ -12,7 +12,7 @@ export function AnnouncementBar() {
         className="flex items-center justify-center gap-3 px-4 text-center"
       >
         <Truck className="h-3.5 w-3.5 text-navy-deep" strokeWidth={2.5} />
-        <p className="font-display text-[10px] font-bold uppercase tracking-[0.25em] text-navy-deep md:text-[11px]">
+        <p className="font-display text-[11px] font-bold uppercase tracking-[0.25em] text-navy-deep md:text-xs">
           Frete grátis para todo o Brasil <span className="mx-2 hidden opacity-40 sm:inline">|</span> 
           <span className="hidden sm:inline">Edição Limitada de Lançamento</span>
         </p>

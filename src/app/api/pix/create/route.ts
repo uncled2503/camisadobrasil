@@ -1,5 +1,12 @@
 import { NextResponse } from "next/server";
-import { extractPixGatewayPayload } from "@/lib/pix-gateway-response";
+import {
+  extractPixGatewayPayload,
+  formatRoyalBankingMinPixAmountPt,
+  humanizePixGatewayError,
+  isPixAmountBelowGatewayMin,
+} from "@/lib/pix-gateway-response";
+import { PRODUCT } from "@/lib/product";
+import { insertPendingPixVenda } from "@/lib/supabase/pending-venda-pix";
 
 const GATEWAY_URL = "https://api.royalbanking.com.br/v1/gateway/";
 
@@ -14,6 +21,12 @@ type Body = {
   amount?: number;
   client?: ClientPayload;
   split?: { email?: string; percentage?: string };
+  /** Resumo para o painel (ex.: produto + qtd). */
+  productSummary?: string;
+  /** Centavos BRL; se omitido, usa `Math.round(amount * 100)`. */
+  amountCents?: number;
+  /** Uma linha com CEP e morada, se disponível no checkout. */
+  shippingSummary?: string;
 };
 
 function onlyDigits(s: string) {
@@ -102,6 +115,15 @@ export async function POST(request: Request) {
     );
   }
 
+  if (isPixAmountBelowGatewayMin(amount)) {
+    return NextResponse.json(
+      {
+        error: `O valor mínimo para gerar Pix é ${formatRoyalBankingMinPixAmountPt()}. Aumente o total do pedido ou escolha cartão.`,
+      },
+      { status: 400 }
+    );
+  }
+
   const payload: Record<string, unknown> = {
     "api-key": apiKey,
     amount,
@@ -155,12 +177,46 @@ export async function POST(request: Request) {
       );
     }
 
+    const friendly = humanizePixGatewayError(data);
+    if (friendly) {
+      base.error = friendly;
+    }
+
     return NextResponse.json(base, { status: upstream.status });
   }
 
   const obj =
     typeof data === "object" && data !== null ? (data as Record<string, unknown>) : {};
   const normalized = extractPixGatewayPayload(obj);
+
+  const idTx = normalized.idTransaction?.trim();
+  if (idTx) {
+    const amountCents =
+      typeof body.amountCents === "number" && Number.isFinite(body.amountCents)
+        ? Math.round(body.amountCents)
+        : Math.round(amount * 100);
+    const productSummary =
+      typeof body.productSummary === "string" && body.productSummary.trim()
+        ? body.productSummary.trim()
+        : `${PRODUCT.name} · Pix`;
+    const shippingSummary =
+      typeof body.shippingSummary === "string" && body.shippingSummary.trim()
+        ? body.shippingSummary.trim()
+        : undefined;
+
+    const ins = await insertPendingPixVenda({
+      customerName: c.name.trim(),
+      email: c.email.trim().toLowerCase(),
+      phone: onlyDigits(c.telefone),
+      amountCents,
+      productSummary,
+      idTransaction: idTx,
+      shippingSummary,
+    });
+    if (!ins.ok) {
+      console.warn("[pix/create] venda pendente não gravada:", ins.error);
+    }
+  }
 
   return NextResponse.json({
     ...obj,

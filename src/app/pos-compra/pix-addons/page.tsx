@@ -57,6 +57,31 @@ function PixAddonsContent() {
     }
   }, [addonCents, vip, card, router]);
 
+  const pixAddonAutoRedirectDoneRef = useRef(false);
+  useEffect(() => {
+    pixAddonAutoRedirectDoneRef.current = false;
+  }, [pixResult?.idTransaction]);
+
+  useEffect(() => {
+    if (loading) return;
+    if (!pixResult?.paymentCode?.trim()) return;
+    if (!(pixResult.idTransaction ?? "").trim()) return;
+    if (!pixTrackingAvailable || !pixPaymentConfirmed) return;
+    if (pixAddonAutoRedirectDoneRef.current) return;
+    pixAddonAutoRedirectDoneRef.current = true;
+    toast.success("Pagamento confirmado!");
+    router.push(posCompraObrigadoQuery(vip, card));
+  }, [
+    loading,
+    pixResult?.paymentCode,
+    pixResult?.idTransaction,
+    pixTrackingAvailable,
+    pixPaymentConfirmed,
+    vip,
+    card,
+    router,
+  ]);
+
   const generatePix = useCallback(async () => {
     const client = readPosCompraPixClient();
     if (!client) {
@@ -88,11 +113,19 @@ function PixAddonsContent() {
 
     try {
       const amount = Number((addonCents / 100).toFixed(2));
+      const parts: string[] = [];
+      if (vip) parts.push("Garantia VIP");
+      if (card) parts.push("Proteção cartão");
+      const productSummaryAddon =
+        parts.length > 0 ? `Adicionais pós-compra · ${parts.join(" · ")}` : "Adicionais pós-compra";
+
       const res = await fetch("/api/pix/create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           amount,
+          amountCents: addonCents,
+          productSummary: productSummaryAddon,
           client: {
             name: client.name,
             document: client.document,

@@ -88,6 +88,14 @@
     animation: shimmer 3s infinite;
   }
 
+  /** Halo dourado suave em valores de preço (hero, barra fixa, CTA, carrinho, checkout). */
+  .price-gold-glow {
+    text-shadow:
+      0 0 14px hsl(var(--gold-bright) / 0.5),
+      0 0 32px hsl(var(--gold) / 0.38),
+      0 0 56px hsl(var(--gold-bright) / 0.22);
+  }
+
   /**
    * Painel /admin — superfícies e controles alinhados (SaaS premium, sem afetar a loja pública).
    */

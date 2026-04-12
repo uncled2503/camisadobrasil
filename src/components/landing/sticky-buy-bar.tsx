@@ -27,7 +27,7 @@ export function StickyBuyBar({ isVisible, onBuyNow }: StickyBuyBarProps) {
                 <p className="text-[10px] font-medium uppercase tracking-[0.28em] text-muted-foreground">
                   Alpha Brasil
                 </p>
-                <p className="mt-0.5 font-display text-[1.35rem] font-bold tabular-nums tracking-tight text-gold-bright">
+                <p className="price-gold-glow mt-0.5 font-display text-[1.35rem] font-bold tabular-nums tracking-tight text-gold-bright">
                   {PRODUCT.priceFormatted}
                 </p>
               </div>

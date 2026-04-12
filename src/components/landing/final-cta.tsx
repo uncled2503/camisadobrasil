@@ -55,7 +55,7 @@ export function FinalCta({ onBuyNow }: FinalCtaProps) {
               <p className="text-[10px] font-medium uppercase tracking-[0.32em] text-muted-foreground">
                 A partir de
               </p>
-              <p className="mt-2 font-display text-4xl font-bold tabular-nums tracking-tight text-gold-bright md:text-5xl">
+              <p className="price-gold-glow mt-2 font-display text-4xl font-bold tabular-nums tracking-tight text-gold-bright md:text-5xl">
                 {PRODUCT.priceFormatted}
               </p>
             </div>

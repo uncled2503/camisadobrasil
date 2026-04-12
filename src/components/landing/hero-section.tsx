@@ -123,7 +123,7 @@ export function HeroSection({
                       <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">Preço Exclusivo</p>
                       <div className="mt-2 flex items-baseline justify-center gap-2 sm:justify-start">
                         <span className="text-sm text-muted-foreground line-through">R$ 149,00</span>
-                        <span className="font-display text-4xl font-bold text-gold-bright">{PRODUCT.priceFormatted}</span>
+                        <span className="price-gold-glow font-display text-4xl font-bold text-gold-bright">{PRODUCT.priceFormatted}</span>
                       </div>
                     </div>
                     

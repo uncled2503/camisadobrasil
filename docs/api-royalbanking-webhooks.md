@@ -73,8 +73,8 @@ Enviado quando o saque **não pôde ser concluído** (saldo insuficiente, conta 
 
 ## Tratamento no teu servidor
 
-1. **Responder depressa** com **HTTP 200 OK** (corpo pode ser JSON mínimo, ex. `{"ok":true}`, ou vazio conforme aceite pela Royal Banking).
-2. A documentação da Royal Banking menciona algo equivalente a “retornar 200 com JSON”; **não** uses literalmente `json_encode(200)` em PHP como corpo — isso seria a string `"200"`. O correto é **código de estado 200** + eventual JSON no body.
+1. **Responder depressa** com **HTTP 200 OK**. Este projeto devolve corpo JSON **`200`** (número), como `json_encode(200)` em PHP.
+2. Em paralelo grava em `pix_gateway_payments` e atualiza **`vendas`** para `status` pago quando o Cash In confirma (`idTransaction` / `externalReference` + `paid`). Requer `docs/supabase-pix-payments.sql`, `docs/supabase-vendas-pix.sql` e `SUPABASE_SERVICE_ROLE_KEY`.
 3. **Idempotência:** o mesmo evento pode ser entregue **várias vezes**. Se não responderes **200** como esperado, a plataforma **reenvia até 3 vezes** (total de tentativas conforme manual).
 4. **Persistência:** guarda `idTransaction` / `externalReference` e atualiza o estado do pedido na base de dados **após** validar o payload (e assinatura, se existir).
 5. **Processamento pesado** (e-mails, filas): faz em **background** depois de responder 200, para não expirar o timeout do webhook.
