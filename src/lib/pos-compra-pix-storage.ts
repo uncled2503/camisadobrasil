@@ -12,6 +12,14 @@ export type PosCompraPixClient = {
   telefone: string;
   /** CPF ou CNPJ só dígitos */
   document: string;
+  /** Endereço de entrega (checkout) — opcional para compatibilidade com sessões antigas */
+  cep?: string;
+  endereco?: string;
+  numero?: string;
+  complemento?: string;
+  bairro?: string;
+  cidade?: string;
+  estado?: string;
 };
 
 export function savePosCompraPixClient(c: PosCompraPixClient): void {

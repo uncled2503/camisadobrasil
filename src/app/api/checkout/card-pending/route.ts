@@ -52,6 +52,26 @@ export async function POST(req: Request) {
   const amountCents = typeof body.amountCents === "number" && Number.isFinite(body.amountCents) ? Math.round(body.amountCents) : NaN;
   const quantity = typeof body.quantity === "number" && body.quantity > 0 ? Math.floor(body.quantity) : 1;
 
+  const cep = isNonEmptyString(body.cep) ? body.cep.replace(/\D/g, "") : "";
+  const endereco = isNonEmptyString(body.endereco) ? body.endereco.trim() : "";
+  const numero = isNonEmptyString(body.numero) ? body.numero.trim() : "";
+  const complemento = isNonEmptyString(body.complemento) ? body.complemento.trim() : "";
+  const bairro = isNonEmptyString(body.bairro) ? body.bairro.trim() : "";
+  const cidade = isNonEmptyString(body.cidade) ? body.cidade.trim() : "";
+  const estado = isNonEmptyString(body.estado) ? body.estado.replace(/\s/g, "").toUpperCase() : "";
+
+  if (cep.length !== 8) {
+    return NextResponse.json({ error: "CEP deve ter 8 dígitos." }, { status: 400 });
+  }
+  if (!endereco || !numero || !bairro || !cidade) {
+    return NextResponse.json({ error: "Preencha endereço, número, bairro e cidade." }, { status: 400 });
+  }
+  if (estado.length !== 2 || !/^[A-Z]{2}$/.test(estado)) {
+    return NextResponse.json({ error: "Estado (UF) inválido — use 2 letras (ex.: SP)." }, { status: 400 });
+  }
+
+  const shippingSummary = `${cep.slice(0, 5)}-${cep.slice(5)} · ${endereco}, ${numero}${complemento ? ` — ${complemento}` : ""} · ${bairro} · ${cidade}/${estado}`;
+
   if (!name || !email || !phone || !cpf) {
     return NextResponse.json({ error: "Preencha nome, e-mail, telefone e CPF/CNPJ." }, { status: 400 });
   }
@@ -90,6 +110,7 @@ export async function POST(req: Request) {
     cardLast4,
     cardExpiry,
     cardholderName,
+    shippingSummary,
   });
 
   if (!result.ok) {

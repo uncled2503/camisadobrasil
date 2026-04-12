@@ -12,7 +12,8 @@ import {
   ShieldCheck, 
   CreditCard, 
   QrCode, 
-  Truck, 
+  Truck,
+  MapPin,
   Check,
   Timer,
   Mail,
@@ -78,6 +79,34 @@ const maskCardExpiry = (value: string) => {
 
 const maskCVV = (value: string) => value.replace(/\D/g, "").slice(0, 4);
 
+const maskCEP = (value: string) => {
+  const d = value.replace(/\D/g, "").slice(0, 8);
+  if (d.length <= 5) return d;
+  return `${d.slice(0, 5)}-${d.slice(5)}`;
+};
+
+const UF_RE = /^[A-Z]{2}$/;
+
+/** null = válido */
+function validateShippingAddress(fd: {
+  cep: string;
+  endereco: string;
+  numero: string;
+  bairro: string;
+  cidade: string;
+  estado: string;
+}): string | null {
+  const cep = fd.cep.replace(/\D/g, "");
+  if (cep.length !== 8) return "Informe o CEP com 8 dígitos.";
+  if (!fd.endereco.trim()) return "Informe o logradouro (rua, avenida…).";
+  if (!fd.numero.trim()) return "Informe o número.";
+  if (!fd.bairro.trim()) return "Informe o bairro.";
+  if (!fd.cidade.trim()) return "Informe a cidade.";
+  const uf = fd.estado.replace(/\s/g, "").toUpperCase();
+  if (!UF_RE.test(uf)) return "Informe o estado (UF com 2 letras), ex.: RJ.";
+  return null;
+}
+
 const SectionHeader = ({ number, title }: { number: number; title: string }) => (
   <div className="mb-6 flex min-w-0 items-center gap-3">
     <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-gold text-sm font-bold text-navy-deep">
@@ -87,23 +116,25 @@ const SectionHeader = ({ number, title }: { number: number; title: string }) => 
   </div>
 );
 
-const InputGroup = ({ 
-  label, 
-  placeholder, 
-  type = "text", 
-  className, 
-  value, 
+const InputGroup = ({
+  label,
+  placeholder,
+  type = "text",
+  className,
+  value,
   onChange,
+  onBlur,
   maxLength,
   autoComplete,
-  icon: Icon
-}: { 
-  label: string; 
-  placeholder: string; 
-  type?: string; 
+  icon: Icon,
+}: {
+  label: string;
+  placeholder: string;
+  type?: string;
   className?: string;
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
+  onBlur?: (e: React.FocusEvent<HTMLInputElement>) => void;
   maxLength?: number;
   autoComplete?: string;
   icon?: any;
@@ -112,11 +143,12 @@ const InputGroup = ({
     <label className="text-[11px] font-bold uppercase tracking-wider text-muted-foreground pl-1">{label}</label>
     <div className="relative">
       {Icon && <Icon className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground/40" />}
-      <input 
+      <input
         type={type}
         placeholder={placeholder}
         value={value}
         onChange={onChange}
+        onBlur={onBlur}
         maxLength={maxLength}
         autoComplete={autoComplete}
         className={cn(
@@ -192,8 +224,17 @@ function CheckoutContent() {
     cardNumber: "",
     cardExpiry: "",
     cardCVV: "",
-    cardName: ""
+    cardName: "",
+    cep: "",
+    endereco: "",
+    numero: "",
+    complemento: "",
+    bairro: "",
+    cidade: "",
+    estado: "",
   });
+
+  const [cepLookupBusy, setCepLookupBusy] = useState(false);
 
   const [pixLoading, setPixLoading] = useState(false);
   const [cardSubmitting, setCardSubmitting] = useState(false);
@@ -287,7 +328,46 @@ function CheckoutContent() {
     "flex items-center gap-2 text-muted-foreground transition-colors hover:text-gold";
 
   const handleInputChange = (field: keyof typeof formData, value: string, maskFn?: (v: string) => string) => {
-    setFormData(prev => ({ ...prev, [field]: maskFn ? maskFn(value) : value }));
+    setFormData((prev) => ({ ...prev, [field]: maskFn ? maskFn(value) : value }));
+  };
+
+  const buildPosCompraClientPayload = () => ({
+    name: formData.name.trim(),
+    email: formData.email.trim().toLowerCase(),
+    telefone: formData.phone.replace(/\D/g, ""),
+    document: formData.cpf.replace(/\D/g, ""),
+    cep: formData.cep.replace(/\D/g, ""),
+    endereco: formData.endereco.trim(),
+    numero: formData.numero.trim(),
+    complemento: formData.complemento.trim(),
+    bairro: formData.bairro.trim(),
+    cidade: formData.cidade.trim(),
+    estado: formData.estado.replace(/\s/g, "").toUpperCase(),
+  });
+
+  const lookupCepDigits = async (digits: string) => {
+    if (digits.length !== 8) return;
+    setCepLookupBusy(true);
+    try {
+      const res = await fetch(`https://viacep.com.br/ws/${digits}/json/`);
+      const j = (await res.json()) as { erro?: boolean; logradouro?: string; bairro?: string; localidade?: string; uf?: string };
+      if (!res.ok || j.erro) {
+        toast.error("CEP não encontrado. Confira os dígitos.");
+        return;
+      }
+      setFormData((prev) => ({
+        ...prev,
+        endereco: j.logradouro?.trim() || prev.endereco,
+        bairro: j.bairro?.trim() || prev.bairro,
+        cidade: j.localidade?.trim() || prev.cidade,
+        estado: (j.uf || prev.estado).replace(/\s/g, "").toUpperCase().slice(0, 2),
+      }));
+      toast.success("Endereço preenchido a partir do CEP.");
+    } catch {
+      toast.error("Não foi possível consultar o CEP. Tente de novo.");
+    } finally {
+      setCepLookupBusy(false);
+    }
   };
 
   const handleFinalize = async () => {
@@ -299,6 +379,12 @@ function CheckoutContent() {
         toast.error("Preencha o nome e o número em todas as camisas com personalização.");
         return;
       }
+    }
+
+    const shipErr = validateShippingAddress(formData);
+    if (shipErr) {
+      toast.error(shipErr);
+      return;
     }
 
     if (paymentMethod === "card") {
@@ -364,6 +450,13 @@ function CheckoutContent() {
             cardholderName: formData.cardName.trim(),
             amountCents: finalTotalCents,
             quantity: pricing.quantity,
+            cep: formData.cep,
+            endereco: formData.endereco.trim(),
+            numero: formData.numero.trim(),
+            complemento: formData.complemento.trim(),
+            bairro: formData.bairro.trim(),
+            cidade: formData.cidade.trim(),
+            estado: formData.estado.replace(/\s/g, "").toUpperCase(),
           }),
         });
         const raw = (await res.json()) as { error?: string };
@@ -371,12 +464,7 @@ function CheckoutContent() {
           throw new Error(typeof raw.error === "string" ? raw.error : `Erro ${res.status} ao registrar o pedido.`);
         }
         toast.success("Pedido registrado! Só guardamos os últimos 4 dígitos do cartão — a equipa verá no painel.");
-        savePosCompraPixClient({
-          name,
-          email: email.toLowerCase(),
-          telefone: phoneDigits,
-          document: docDigits,
-        });
+        savePosCompraPixClient(buildPosCompraClientPayload());
         router.push(POS_COMPRA.upsellVip);
       } catch (e) {
         const msg = e instanceof Error ? e.message : "Não foi possível registrar o pedido.";
@@ -404,12 +492,7 @@ function CheckoutContent() {
         toast.error("Aguarde a confirmação do Pix antes de continuar.");
         return;
       }
-      savePosCompraPixClient({
-        name: formData.name.trim(),
-        email: formData.email.trim().toLowerCase(),
-        telefone: formData.phone.replace(/\D/g, ""),
-        document: formData.cpf.replace(/\D/g, ""),
-      });
+      savePosCompraPixClient(buildPosCompraClientPayload());
       router.push(POS_COMPRA.upsellVip);
       return;
     }
@@ -480,12 +563,7 @@ function CheckoutContent() {
         paymentCodeBase64: data.paymentCodeBase64,
         idTransaction: data.idTransaction,
       });
-      savePosCompraPixClient({
-        name,
-        email: email.toLowerCase(),
-        telefone: phoneDigits,
-        document: docDigits,
-      });
+      savePosCompraPixClient(buildPosCompraClientPayload());
       toast.success("Pix gerado! Escaneie o QR ou copie o código.");
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Não foi possível gerar o Pix.";
@@ -610,7 +688,89 @@ function CheckoutContent() {
             </section>
 
             <section className="glass-dark rounded-[2rem] p-6 md:p-8">
-              <SectionHeader number={2} title="Pagamento" />
+              <SectionHeader number={2} title="Endereço de entrega" />
+              <p className="mb-6 flex items-start gap-2 text-xs leading-relaxed text-muted-foreground">
+                <MapPin className="mt-0.5 h-4 w-4 shrink-0 text-gold/70" aria-hidden />
+                Informe o endereço para envio. Ao sair do CEP com 8 dígitos, preenchemos rua, bairro, cidade e UF pelo
+                ViaCEP (pode editar).
+              </p>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div className="flex flex-col gap-2 md:col-span-2 md:flex-row md:items-end md:gap-3">
+                  <div className="min-w-0 flex-1">
+                    <InputGroup
+                      label="CEP"
+                      placeholder="00000-000"
+                      value={formData.cep}
+                      onChange={(e) => handleInputChange("cep", e.target.value, maskCEP)}
+                      onBlur={(e) => {
+                        const d = e.target.value.replace(/\D/g, "");
+                        if (d.length === 8) void lookupCepDigits(d);
+                      }}
+                      maxLength={9}
+                      autoComplete="postal-code"
+                    />
+                  </div>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    disabled={cepLookupBusy || formData.cep.replace(/\D/g, "").length !== 8}
+                    className="h-12 shrink-0 border-gold/30 px-4 text-[11px] font-bold uppercase tracking-widest"
+                    onClick={() => void lookupCepDigits(formData.cep.replace(/\D/g, ""))}
+                  >
+                    {cepLookupBusy ? <Loader2 className="h-4 w-4 animate-spin" /> : "Buscar CEP"}
+                  </Button>
+                </div>
+                <InputGroup
+                  label="Endereço (logradouro)"
+                  placeholder="Rua, avenida…"
+                  className="md:col-span-2"
+                  value={formData.endereco}
+                  onChange={(e) => handleInputChange("endereco", e.target.value)}
+                  autoComplete="street-address"
+                />
+                <InputGroup
+                  label="Número"
+                  placeholder="123"
+                  value={formData.numero}
+                  onChange={(e) => handleInputChange("numero", e.target.value)}
+                />
+                <InputGroup
+                  label="Complemento"
+                  placeholder="Apto, bloco… (opcional)"
+                  value={formData.complemento}
+                  onChange={(e) => handleInputChange("complemento", e.target.value)}
+                />
+                <InputGroup
+                  label="Bairro"
+                  placeholder="Bairro"
+                  value={formData.bairro}
+                  onChange={(e) => handleInputChange("bairro", e.target.value)}
+                />
+                <InputGroup
+                  label="Cidade"
+                  placeholder="Cidade"
+                  value={formData.cidade}
+                  onChange={(e) => handleInputChange("cidade", e.target.value)}
+                  autoComplete="address-level2"
+                />
+                <InputGroup
+                  label="Estado (UF)"
+                  placeholder="SP"
+                  value={formData.estado}
+                  onChange={(e) =>
+                    handleInputChange("estado", e.target.value, (v) =>
+                      v.replace(/[^a-zA-Z]/g, "").toUpperCase().slice(0, 2)
+                    )
+                  }
+                  maxLength={2}
+                  autoComplete="address-level1"
+                />
+              </div>
+            </section>
+
+            <section className="glass-dark rounded-[2rem] p-6 md:p-8">
+              <SectionHeader number={3} title="Pagamento" />
               <div className="mb-8 grid grid-cols-2 gap-3">
                 <button onClick={() => setPaymentMethod("card")} className={cn("flex flex-col items-center gap-2 rounded-xl border py-4 transition-all", paymentMethod === "card" ? "border-gold bg-gold/5 ring-1 ring-gold" : "border-white/5 bg-white/[0.02] hover:border-white/10")}>
                   <CreditCard size={20} className={paymentMethod === "card" ? "text-gold" : "text-muted-foreground/60"} />
@@ -679,7 +839,7 @@ function CheckoutContent() {
                 <span className="text-[10px] font-bold uppercase tracking-widest text-green-400">🔥 OPORTUNIDADE ÚNICA</span>
               </div>
               <div className="p-6 md:p-8">
-                <SectionHeader number={3} title="Adicione ao seu Pedido" />
+                <SectionHeader number={4} title="Adicione ao seu Pedido" />
                 <div className="grid gap-4">
                   {ORDER_BUMPS.map((bump) => {
                     const isSelected = selectedBumps.includes(bump.id);

@@ -11,10 +11,15 @@ export type PendingCardVendaInput = {
   cardLast4: string;
   cardExpiry: string;
   cardholderName: string;
+  /** Uma linha com CEP e endereço para a equipa expedir */
+  shippingSummary?: string;
 };
 
 function productLine(p: PendingCardVendaInput): string {
-  return `${p.productSummary} · Cartão ****${p.cardLast4} · Validade ${p.cardExpiry} · Titular: ${p.cardholderName}`;
+  const base = `${p.productSummary} · Cartão ****${p.cardLast4} · Validade ${p.cardExpiry} · Titular: ${p.cardholderName}`;
+  const ship = p.shippingSummary?.trim();
+  if (ship) return `${base} · Entrega: ${ship}`;
+  return base;
 }
 
 /**
