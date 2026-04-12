@@ -5,11 +5,25 @@ import { fileURLToPath } from "node:url";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 const nextConfig: NextConfig = {
+  /**
+   * O Segment Explorer (default em Next 15.5) injeta `SegmentViewNode` no RSC e tem causado
+   * erros de manifest / `__webpack_modules__` em dev, com páginas sem CSS após Fast Refresh.
+   */
+  experimental: {
+    devtoolSegmentExplorer: false,
+  },
   /** Evita confusão de raiz quando existe outro lockfile na pasta pai (ex.: Camisa V2). */
   outputFileTracingRoot: path.join(__dirname),
   images: {
     // Configura as qualidades permitidas para evitar avisos de versões futuras do Next.js
     qualities: [75, 90, 95],
+    remotePatterns: [
+      {
+        protocol: "https",
+        hostname: "randomuser.me",
+        pathname: "/api/portraits/**",
+      },
+    ],
   },
 };
 

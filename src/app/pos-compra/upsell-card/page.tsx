@@ -5,15 +5,19 @@ import { useRouter, useSearchParams } from "next/navigation";
 import Image from "next/image";
 import { Gem } from "lucide-react";
 import { PostPurchaseUpsellShell } from "@/components/pos-compra/post-purchase-upsell-shell";
-import { posCompraObrigadoQuery } from "@/lib/pos-compra-routes";
+import { posCompraObrigadoQuery, posCompraPixAddonsQuery } from "@/lib/pos-compra-routes";
 
 function UpsellCardContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const vipAccepted = searchParams.get("vip") === "1";
 
-  const goObrigado = (cardAccepted: boolean) => {
-    router.push(posCompraObrigadoQuery(vipAccepted, cardAccepted));
+  const goProximoPasso = (cardAccepted: boolean) => {
+    if (vipAccepted || cardAccepted) {
+      router.push(posCompraPixAddonsQuery(vipAccepted, cardAccepted));
+      return;
+    }
+    router.push(posCompraObrigadoQuery(false, false));
   };
 
   return (
@@ -24,8 +28,8 @@ function UpsellCardContent() {
       priceDisplay="+ R$ 12,90"
       acceptLabel="Sim, quero o card colecionável"
       declineLabel="Não, finalizar sem o card"
-      onAccept={() => goObrigado(true)}
-      onDecline={() => goObrigado(false)}
+      onAccept={() => goProximoPasso(true)}
+      onDecline={() => goProximoPasso(false)}
       visual={
         <div className="relative aspect-[16/11] w-full overflow-hidden">
           <Image

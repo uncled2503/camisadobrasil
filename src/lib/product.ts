@@ -32,13 +32,17 @@ export const HERO_PRODUCT_IMAGE_SRC = HERO_PRODUCT_POSTER_SRC;
 export const PRODUCT_IMAGE_MAIN_SRC =
   "/images/camisa-brasil-edicao-elite.png" as const;
 
-/** Foto de estúdio / vista clássica da peça. */
+/** Arte 1 web — close frontal nº 10, CBF e Cristo no Jacquard (`GALLERY_IMAGES`[2] e 3.ª miniatura da galeria premium). */
 export const PRODUCT_IMAGE_DETAIL_SRC =
-  "/images/camisa-brasil-estilizada.png" as const;
+  "/images/gallery-premium-frontal-detalhe.png" as const;
 
-/** Close macro premium — escudo, número 10 e textura. */
+/** Costas da camisa — NOME + número 10 (2.ª miniatura da galeria premium). */
+export const PRODUCT_IMAGE_GALLERY_BACK_SRC =
+  "/images/gallery-camisa-costas.png" as const;
+
+/** Close macro premium — nº 10, escudo CBF e Cristo no Jacquard (secção “Arte da Redenção” + `GALLERY_IMAGES`[1]). */
 export const PRODUCT_IMAGE_GALLERY_MACRO_SRC =
-  "/images/camisa-galeria-detalhe-macro.png" as const;
+  "/images/arte-redencao-detalhe-jacquard.png" as const;
 
 /** Detalhes costa / gola — edição limitada (arte web). */
 export const PRODUCT_IMAGE_GALLERY_MACRO_V2_SRC =
@@ -60,16 +64,27 @@ export const GALLERY_IMAGES = [
   },
   {
     src: PRODUCT_IMAGE_GALLERY_MACRO_SRC,
-    alt: "Close premium: escudo CBF em bordado dourado",
+    alt: "Detalhe frontal: número 10, escudo CBF e textura Jacquard com Cristo Redentor",
   },
   {
     src: PRODUCT_IMAGE_DETAIL_SRC,
-    alt: "Vista frontal da peça com Cristo Redentor",
+    alt: "Close frontal: número 10, escudo CBF e Cristo Redentor na textura Jacquard",
   },
   {
     src: PRODUCT_IMAGE_GALLERY_MACRO_V2_SRC,
     alt: "Detalhes da costa e gola: escudo CBF, etiqueta Edição Limitada Rio de Janeiro e acabamento da manga",
   },
+] as const;
+
+/** Galeria premium: 1.ª frontal; 2.ª costas; 3.ª Arte 1 web (close frontal); 4.ª detalhe gola/costa. */
+export const PREMIUM_GALLERY_IMAGES = [
+  GALLERY_IMAGES[0],
+  {
+    src: PRODUCT_IMAGE_GALLERY_BACK_SRC,
+    alt: "Costas da camisa — NOME e número 10, estrelas e acabamento premium",
+  },
+  GALLERY_IMAGES[2],
+  GALLERY_IMAGES[3],
 ] as const;
 
 /** Key visual do hero para meta. */

@@ -4,7 +4,7 @@ import Image from "next/image";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 import { useVideoBoomerangLoop } from "@/hooks/use-video-boomerang-loop";
-import { GALLERY_IMAGES } from "@/lib/product";
+import { PREMIUM_GALLERY_IMAGES } from "@/lib/product";
 import { SectionReveal, SectionShell } from "@/components/landing/section-shell";
 import {
   Dialog,
@@ -15,7 +15,7 @@ import {
 import { cn } from "@/lib/utils";
 import { Maximize2 } from "lucide-react";
 
-type GalleryItem = (typeof GALLERY_IMAGES)[number];
+type GalleryItem = (typeof PREMIUM_GALLERY_IMAGES)[number];
 
 type GalleryVideoItem = {
   webmSrc: string;
@@ -48,7 +48,7 @@ export function PremiumGallery() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const lightboxVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const activeItem = GALLERY_IMAGES[active];
+  const activeItem = PREMIUM_GALLERY_IMAGES[active];
   const activeVideo = asVideoItem(activeItem);
   const galleryVideoActive = activeVideo !== null;
 
@@ -210,7 +210,7 @@ export function PremiumGallery() {
           className="flex gap-3 overflow-x-auto pb-1 lg:w-[112px] lg:flex-shrink-0 lg:flex-col lg:overflow-visible lg:pb-0"
           style={{ scrollbarWidth: "thin" }}
         >
-          {GALLERY_IMAGES.map((img, i) => (
+          {PREMIUM_GALLERY_IMAGES.map((img, i) => (
             <button
               key={`${galleryThumbSrc(img)}-${i}`}
               type="button"

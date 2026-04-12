@@ -26,8 +26,8 @@ function webhookPath() {
 
 /**
  * URL pública do webhook (Cash In).
- * SITE_URL / APP_URL são lidos em runtime (definir na Vercel sem prefixo NEXT_PUBLIC).
- * NEXT_PUBLIC_APP_URL só entra num novo build depois de definida no painel.
+ * Ordem: ROYALBANKING_PIX_CALLBACK_URL → SITE_URL / APP_URL / NEXT_PUBLIC_APP_URL → VERCEL_URL
+ * → em não-produção, localhost (só dev; a Royal Banking precisa de URL acessível na internet — use ngrok + ROYALBANKING_PIX_CALLBACK_URL).
  */
 function resolveCallbackUrl(): string | null {
   const explicit = process.env.ROYALBANKING_PIX_CALLBACK_URL?.trim();
@@ -45,6 +45,11 @@ function resolveCallbackUrl(): string | null {
   if (vercel) {
     const origin = vercel.startsWith("http") ? vercel : `https://${vercel}`;
     return `${origin.replace(/\/$/, "")}${webhookPath()}`;
+  }
+
+  if (process.env.NODE_ENV !== "production") {
+    const port = process.env.PORT?.trim() || "3000";
+    return `http://127.0.0.1:${port}${webhookPath()}`;
   }
 
   return null;
@@ -67,7 +72,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "URL do webhook não definida. Na Vercel: SITE_URL ou NEXT_PUBLIC_APP_URL = https://camisa-brasil-landing.vercel.app (ou ROYALBANKING_PIX_CALLBACK_URL completo). Faça Redeploy após alterar variáveis.",
+          "URL do webhook não definida. Em produção (Vercel): defina SITE_URL ou NEXT_PUBLIC_APP_URL com o domínio público (ex.: https://camisa-brasil-landing.vercel.app), ou ROYALBANKING_PIX_CALLBACK_URL com a URL completa do webhook. Em local, use ngrok e aponte ROYALBANKING_PIX_CALLBACK_URL para …/api/webhooks/royalbanking/pix. Redeploy após alterar variáveis na Vercel.",
       },
       { status: 503 }
     );
@@ -134,7 +139,23 @@ export async function POST(request: Request) {
   }
 
   if (!upstream.ok) {
-    return NextResponse.json(data, { status: upstream.status });
+    const base =
+      typeof data === "object" && data !== null && !Array.isArray(data)
+        ? ({ ...(data as Record<string, unknown>) } as Record<string, unknown>)
+        : { detail: data };
+
+    if (upstream.status === 401 || upstream.status === 403) {
+      return NextResponse.json(
+        {
+          ...base,
+          error:
+            "Royal Banking recusou a chave (401/403). Confirme ROYALBANKING_API_KEY no .env.local ou na Vercel — copie a API key correta do painel Royal Banking (Cash In / gateway) e reinicie o servidor.",
+        },
+        { status: upstream.status }
+      );
+    }
+
+    return NextResponse.json(base, { status: upstream.status });
   }
 
   const obj =

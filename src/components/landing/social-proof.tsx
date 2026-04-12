@@ -3,94 +3,188 @@
 import Image from "next/image";
 import { Star } from "lucide-react";
 import { SectionReveal, SectionShell } from "@/components/landing/section-shell";
+import { reviewPortraitMan, reviewPortraitWoman } from "@/lib/review-portrait-urls";
 import { cn } from "@/lib/utils";
 
-const reviews = [
+/** Embaralha de forma estável (mesma ordem em cada build / hidratação). */
+function shuffleDeterministic<T>(items: readonly T[], seed: number): T[] {
+  const arr = [...items];
+  let s = seed >>> 0;
+  const next = () => {
+    s = (Math.imul(s, 1664525) + 1013904223) >>> 0;
+    return s / 0xffffffff;
+  };
+  for (let i = arr.length - 1; i > 0; i--) {
+    const j = Math.floor(next() * (i + 1));
+    [arr[i], arr[j]] = [arr[j], arr[i]];
+  }
+  return arr;
+}
+
+type ReviewPhotoEntry = {
+  name: string;
+  text: string;
+  rating: 5;
+  profileImageSrc: string;
+  imageSrc: string;
+};
+
+/** Fotos reais de clientes (UGC) — mesmo cartão que o restante do carrossel. */
+const ugcReviewPhotos: ReviewPhotoEntry[] = [
+  {
+    name: "Ricardo H.",
+    text: "Igual às fotos do site — no espelho ficou ainda melhor. Recomendo!",
+    rating: 5,
+    profileImageSrc: "/images/testimonials/profiles/ricardo-h.png",
+    imageSrc: "/images/testimonials/ugc/ugc-1.png",
+  },
+  {
+    name: "Bruno T.",
+    text: "Montei o kit completo: presença absurda e tecido leve. Nota máxima.",
+    rating: 5,
+    profileImageSrc: "/images/testimonials/profiles/bruno-t.png",
+    imageSrc: "/images/testimonials/ugc/ugc-2.png",
+  },
+  {
+    name: "Letícia M.",
+    text: "O Cristo no tecido é lindo ao vivo. Caimento e cores na medida certa!",
+    rating: 5,
+    profileImageSrc: "/images/testimonials/profiles/leticia-m.png",
+    imageSrc: "/images/testimonials/ugc/ugc-3.png",
+  },
+  {
+    name: "Camila R.",
+    text: "Chegou certinho e veste super bem. Já quero pedir outra.",
+    rating: 5,
+    profileImageSrc: reviewPortraitWoman(59),
+    imageSrc: "/images/testimonials/ugc/ugc-4.png",
+  },
+  {
+    name: "Vinícius K.",
+    text: "Foto real do pedido — bate com o anúncio. Material de primeira linha.",
+    rating: 5,
+    profileImageSrc: reviewPortraitMan(63),
+    imageSrc: "/images/testimonials/ugc/ugc-5.png",
+  },
+];
+
+const stockReviewPhotos: ReviewPhotoEntry[] = [
   {
     name: "Rafael M.",
     text: "Acabamento impecável. Parece peça de coleção.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/1.jpg",
+    profileImageSrc: reviewPortraitMan(11),
     imageSrc: "/images/testimonials/1.png",
   },
   {
     name: "Juliana C.",
     text: "O caimento valoriza demais. Cor vibrante na medida.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/2.jpg",
+    profileImageSrc: reviewPortraitWoman(14),
     imageSrc: "/images/testimonials/2.png",
   },
   {
     name: "Diego A.",
     text: "Leve, confortável e com presença. Virou minha favorita.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/3.jpg",
+    profileImageSrc: reviewPortraitMan(18),
     imageSrc: "/images/testimonials/3.png",
   },
   {
     name: "Beatriz L.",
     text: "Qualidade surpreendente pelo preço. Recomendo!",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/6.jpg",
+    profileImageSrc: reviewPortraitWoman(22),
     imageSrc: "/images/testimonials/4.png",
   },
   {
     name: "Lucas S.",
     text: "Design moderno, foge do óbvio. Chegou rápido.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/4.jpg",
+    profileImageSrc: reviewPortraitMan(25),
     imageSrc: "/images/testimonials/5.png",
   },
   {
     name: "Fernanda O.",
     text: "A estampa é muito mais bonita ao vivo. Amei!",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/7.jpg",
+    profileImageSrc: reviewPortraitWoman(28),
     imageSrc: "/images/testimonials/6.png",
   },
   {
     name: "Carlos E.",
     text: "Material de primeira, não esquenta. Ótima compra.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/5.jpg",
+    profileImageSrc: reviewPortraitMan(31),
     imageSrc: "/images/testimonials/7.png",
   },
   {
-    name: "Mariana P.",
+    name: "Isabela P.",
     text: "Veste super bem, modelagem perfeita. Comprarei de novo.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/8.jpg",
+    profileImageSrc: reviewPortraitWoman(35),
     imageSrc: "/images/testimonials/8.png",
   },
   {
     name: "Gustavo F.",
     text: "Chegou antes do prazo e a qualidade é surreal. Top!",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/1.jpg",
+    profileImageSrc: reviewPortraitMan(38),
     imageSrc: "/images/testimonials/9.png",
   },
   {
     name: "Ana B.",
     text: "A camisa é linda, o tecido é muito bom. Comprarei mais vezes.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/2.jpg",
+    profileImageSrc: reviewPortraitWoman(42),
     imageSrc: "/images/testimonials/10.png",
   },
   {
     name: "Thiago R.",
     text: "Impressionado com os detalhes. Vale cada centavo.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/3.jpg",
+    profileImageSrc: reviewPortraitMan(45),
     imageSrc: "/images/testimonials/11.png",
   },
   {
-    name: "Camila V.",
+    name: "Catarina V.",
     text: "Perfeita para usar nos jogos e no dia a dia. Estilosa demais.",
     rating: 5,
-    profileImageSrc: "/images/testimonials/profiles/6.jpg",
+    profileImageSrc: reviewPortraitWoman(49),
     imageSrc: "/images/testimonials/12.png",
   },
 ];
+
+/** Intercala stock + UGC antes do shuffle para não agrupar várias selfies seguidas (efeito “grelha repetida”). */
+function interleaveStockAndUgc(
+  stock: readonly ReviewPhotoEntry[],
+  ugc: readonly ReviewPhotoEntry[]
+): ReviewPhotoEntry[] {
+  const out: ReviewPhotoEntry[] = [];
+  const n = Math.max(stock.length, ugc.length);
+  for (let i = 0; i < n; i++) {
+    if (i < stock.length) out.push(stock[i]);
+    if (i < ugc.length) out.push(ugc[i]);
+  }
+  return out;
+}
+
+function dedupeByImageSrc(entries: readonly ReviewPhotoEntry[]): ReviewPhotoEntry[] {
+  const seen = new Set<string>();
+  const out: ReviewPhotoEntry[] = [];
+  for (const e of entries) {
+    if (seen.has(e.imageSrc)) continue;
+    seen.add(e.imageSrc);
+    out.push(e);
+  }
+  return out;
+}
+
+/** Ordem estável entre builds; sem `imageSrc` repetido. */
+const reviews = shuffleDeterministic(
+  dedupeByImageSrc(interleaveStockAndUgc(stockReviewPhotos, ugcReviewPhotos)),
+  0x414c5048 /* "ALPH" */
+);
 
 type ReviewEntry = (typeof reviews)[number];
 

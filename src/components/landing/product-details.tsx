@@ -57,7 +57,7 @@ export function ProductDetails() {
               <div className="absolute inset-0 z-10 bg-gradient-to-t from-navy-deep/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-40" />
               <Image
                 src={GALLERY_IMAGES[1].src}
-                alt="Detalhe do Cristo Redentor em Jacquard"
+                alt="Zoom no detalhe: número 10, escudo CBF e textura Jacquard com Cristo Redentor"
                 fill
                 className="object-cover grayscale transition-all duration-700 group-hover:scale-110 group-hover:grayscale-0"
                 sizes="(max-width: 1024px) 100vw, 420px"

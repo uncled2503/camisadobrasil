@@ -62,7 +62,7 @@ export function PostPurchaseUpsellShell({
             <h1 className="font-display text-[clamp(1.15rem,4vw,1.65rem)] font-extrabold uppercase leading-snug tracking-[0.06em] text-white">
               {headline}
             </h1>
-            <p className="mx-auto mt-4 max-w-md text-sm leading-relaxed text-muted-foreground md:text-[15px]">
+            <p className="mx-auto mt-4 max-w-md text-[15px] leading-relaxed text-muted-foreground md:text-[17px]">
               {subheadline}
             </p>
             <p className="mt-8 font-display text-3xl font-bold tracking-tight text-gold-bright md:text-4xl">

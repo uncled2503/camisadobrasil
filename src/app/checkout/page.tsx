@@ -39,6 +39,7 @@ import {
   useRetentionBannerCountdown,
 } from "@/hooks/use-checkout-retention";
 import { extractPixGatewayPayload, qrDataUrlForImg } from "@/lib/pix-gateway-response";
+import { savePosCompraPixClient } from "@/lib/pos-compra-pix-storage";
 
 // Funções de máscara para campos de formulário
 const maskCPF = (value: string) => {
@@ -58,6 +59,24 @@ const maskPhone = (value: string) => {
     .replace(/(-\d{4})\d+?$/, "$1");
 };
 
+/** Só dígitos, blocos de 4 — o número completo não é enviado ao servidor, apenas os últimos 4. */
+const maskCardNumber = (value: string) => {
+  const d = value.replace(/\D/g, "").slice(0, 19);
+  const parts: string[] = [];
+  for (let i = 0; i < d.length; i += 4) {
+    parts.push(d.slice(i, i + 4));
+  }
+  return parts.join(" ");
+};
+
+const maskCardExpiry = (value: string) => {
+  const d = value.replace(/\D/g, "").slice(0, 4);
+  if (d.length <= 2) return d;
+  return `${d.slice(0, 2)}/${d.slice(2)}`;
+};
+
+const maskCVV = (value: string) => value.replace(/\D/g, "").slice(0, 4);
+
 const SectionHeader = ({ number, title }: { number: number; title: string }) => (
   <div className="flex items-center gap-3 mb-6">
     <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gold text-navy-deep font-bold text-sm">
@@ -75,6 +94,7 @@ const InputGroup = ({
   value, 
   onChange,
   maxLength,
+  autoComplete,
   icon: Icon
 }: { 
   label: string; 
@@ -84,6 +104,7 @@ const InputGroup = ({
   value?: string;
   onChange?: (e: React.ChangeEvent<HTMLInputElement>) => void;
   maxLength?: number;
+  autoComplete?: string;
   icon?: any;
 }) => (
   <div className={cn("flex flex-col gap-1.5", className)}>
@@ -96,6 +117,7 @@ const InputGroup = ({
         value={value}
         onChange={onChange}
         maxLength={maxLength}
+        autoComplete={autoComplete}
         className={cn(
           "h-12 w-full rounded-xl border border-white/10 bg-white/[0.03] px-4 text-sm text-white placeholder:text-muted-foreground/40 focus:border-gold/50 focus:outline-none focus:ring-1 focus:ring-gold/50 transition-all",
           Icon && "pl-11"
@@ -173,6 +195,7 @@ function CheckoutContent() {
   });
 
   const [pixLoading, setPixLoading] = useState(false);
+  const [cardSubmitting, setCardSubmitting] = useState(false);
   const [pixResult, setPixResult] = useState<{
     paymentCode: string;
     paymentCodeBase64: string;
@@ -267,22 +290,98 @@ function CheckoutContent() {
     }
 
     if (paymentMethod === "card") {
-      toast.error("Sistema de Cartão indisponível, refaça a compra via Pix por gentileza!", {
-        duration: 5000,
-        icon: '⚠️',
-        style: {
-          borderRadius: '12px',
-          background: '#060a12',
-          color: '#fff',
-          border: '1px solid rgba(255, 255, 255, 0.1)',
-          fontSize: '14px',
-          fontWeight: '600'
+      const name = formData.name.trim();
+      const email = formData.email.trim();
+      const phoneDigits = formData.phone.replace(/\D/g, "");
+      const docDigits = formData.cpf.replace(/\D/g, "");
+
+      if (!name || !email || !formData.phone.trim() || !formData.cpf.trim()) {
+        toast.error("Preencha nome, e-mail, WhatsApp e CPF/CNPJ antes de finalizar com cartão.");
+        return;
+      }
+      if (email !== formData.confirmEmail.trim()) {
+        toast.error("Os e-mails não coincidem.");
+        return;
+      }
+      if (docDigits.length !== 11 && docDigits.length !== 14) {
+        toast.error("Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.");
+        return;
+      }
+      if (phoneDigits.length < 10) {
+        toast.error("Informe um telefone com DDD.");
+        return;
+      }
+
+      const cardDigits = formData.cardNumber.replace(/\D/g, "");
+      const last4 = cardDigits.slice(-4);
+      if (cardDigits.length < 13) {
+        toast.error("Informe o número do cartão completo (mín. 13 dígitos).");
+        return;
+      }
+      if (!/^\d{4}$/.test(last4)) {
+        toast.error("Não foi possível validar os últimos dígitos do cartão.");
+        return;
+      }
+      if (!/^\d{2}\/\d{2}$/.test(formData.cardExpiry.trim())) {
+        toast.error("Informe a validade no formato MM/AA.");
+        return;
+      }
+      const cvvDigits = formData.cardCVV.replace(/\D/g, "");
+      if (cvvDigits.length < 3) {
+        toast.error("Informe o CVV (3 ou 4 dígitos).");
+        return;
+      }
+      if (!formData.cardName.trim()) {
+        toast.error("Informe o nome impresso no cartão.");
+        return;
+      }
+
+      setCardSubmitting(true);
+      try {
+        const res = await fetch("/api/checkout/card-pending", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            name,
+            email,
+            confirmEmail: formData.confirmEmail.trim().toLowerCase(),
+            phone: formData.phone,
+            cpf: formData.cpf,
+            cardLast4: last4,
+            cardExpiry: formData.cardExpiry.trim(),
+            cardholderName: formData.cardName.trim(),
+            amountCents: finalTotalCents,
+            quantity: pricing.quantity,
+          }),
+        });
+        const raw = (await res.json()) as { error?: string };
+        if (!res.ok) {
+          throw new Error(typeof raw.error === "string" ? raw.error : `Erro ${res.status} ao registrar o pedido.`);
         }
-      });
+        toast.success("Pedido registrado! Só guardamos os últimos 4 dígitos do cartão — a equipa verá no painel.");
+        savePosCompraPixClient({
+          name,
+          email: email.toLowerCase(),
+          telefone: phoneDigits,
+          document: docDigits,
+        });
+        router.push(POS_COMPRA.upsellVip);
+      } catch (e) {
+        const msg = e instanceof Error ? e.message : "Não foi possível registrar o pedido.";
+        toast.error(msg);
+      } finally {
+        setCardSubmitting(false);
+      }
       return;
     }
 
     if (pixResult != null) {
+      savePosCompraPixClient({
+        name: formData.name.trim(),
+        email: formData.email.trim().toLowerCase(),
+        telefone: formData.phone.replace(/\D/g, ""),
+        document: formData.cpf.replace(/\D/g, ""),
+      });
       router.push(POS_COMPRA.upsellVip);
       return;
     }
@@ -330,12 +429,17 @@ function CheckoutContent() {
       const data = extractPixGatewayPayload(raw);
 
       if (!res.ok) {
-        const msg =
+        const fromGateway =
           typeof raw.error === "string"
             ? raw.error
             : typeof raw.message === "string"
               ? raw.message
-              : `Erro ${res.status} ao gerar Pix.`;
+              : "";
+        const msg =
+          fromGateway ||
+          (res.status === 401 || res.status === 403
+            ? "Chave da Royal Banking inválida (401). Atualize ROYALBANKING_API_KEY e reinicie o npm run dev."
+            : `Erro ${res.status} ao gerar Pix.`);
         throw new Error(msg);
       }
 
@@ -347,6 +451,12 @@ function CheckoutContent() {
         paymentCode: data.paymentCode,
         paymentCodeBase64: data.paymentCodeBase64,
         idTransaction: data.idTransaction,
+      });
+      savePosCompraPixClient({
+        name,
+        email: email.toLowerCase(),
+        telefone: phoneDigits,
+        document: docDigits,
       });
       toast.success("Pix gerado! Escaneie o QR ou copie o código.");
     } catch (e) {
@@ -435,15 +545,15 @@ function CheckoutContent() {
         </div>
       </section>
 
-      <main className="mx-auto mt-8 max-w-7xl px-5 lg:mt-12">
-        <div className="grid gap-8 lg:grid-cols-[1fr_400px]">
-          <div className="space-y-8">
-            <div className="glass-dark flex items-center justify-between rounded-2xl px-6 py-4">
-              <div className="flex items-center gap-3">
-                <Truck className="text-gold" size={20} />
+      <main className="mx-auto mt-8 max-w-7xl px-4 sm:px-5 lg:mt-12">
+        <div className="grid min-w-0 gap-8 lg:grid-cols-[1fr_400px]">
+          <div className="min-w-0 space-y-8">
+            <div className="glass-dark flex min-w-0 flex-col gap-2 rounded-2xl px-4 py-4 sm:flex-row sm:items-center sm:justify-between sm:px-6">
+              <div className="flex min-w-0 items-center gap-3">
+                <Truck className="shrink-0 text-gold" size={20} />
                 <p className="text-xs font-bold uppercase tracking-widest text-white/90">Você está adquirindo:</p>
               </div>
-              <p className="text-xs font-bold text-gold-bright">
+              <p className="min-w-0 text-xs font-bold leading-snug text-gold-bright sm:text-right">
                 {PRODUCT.name} ({pricing.quantity} un)
                 {orderSizes.length === 1
                   ? ` · Tam. ${orderSizes[0]}`
@@ -496,12 +606,42 @@ function CheckoutContent() {
                 </div>
               ) : (
                 <div className="grid gap-4">
-                  <InputGroup label="Número do Cartão" placeholder="0000 0000 0000 0000" />
+                  <p className="rounded-xl border border-amber-500/20 bg-amber-500/[0.06] px-3 py-2 text-[11px] leading-relaxed text-amber-100/90">
+                    Por segurança e conformidade (PCI), o número completo e o CVV <strong>não</strong> são gravados no
+                    banco — apenas os <strong>últimos 4 dígitos</strong>, validade, titular e o valor do pedido, para a
+                    equipa acompanhar no painel.
+                  </p>
+                  <InputGroup
+                    label="Número do Cartão"
+                    placeholder="0000 0000 0000 0000"
+                    value={formData.cardNumber}
+                    onChange={(e) => handleInputChange("cardNumber", e.target.value, maskCardNumber)}
+                    maxLength={23}
+                  />
                   <div className="grid grid-cols-2 gap-4">
-                    <InputGroup label="Validade" placeholder="MM/AA" />
-                    <InputGroup label="CVV" placeholder="123" />
+                    <InputGroup
+                      label="Validade"
+                      placeholder="MM/AA"
+                      value={formData.cardExpiry}
+                      onChange={(e) => handleInputChange("cardExpiry", e.target.value, maskCardExpiry)}
+                      maxLength={5}
+                    />
+                    <InputGroup
+                      label="CVV"
+                      placeholder="123"
+                      type="password"
+                      autoComplete="cc-csc"
+                      value={formData.cardCVV}
+                      onChange={(e) => handleInputChange("cardCVV", e.target.value, maskCVV)}
+                      maxLength={4}
+                    />
                   </div>
-                  <InputGroup label="Nome no Cartão" placeholder="Como no cartão" />
+                  <InputGroup
+                    label="Nome no Cartão"
+                    placeholder="Como no cartão"
+                    value={formData.cardName}
+                    onChange={(e) => handleInputChange("cardName", e.target.value)}
+                  />
                 </div>
               )}
             </section>
@@ -534,7 +674,7 @@ function CheckoutContent() {
                           </div>
                           <div className="flex-1">
                             <h4 className="text-sm font-bold text-white">{bump.title}</h4>
-                            <p className="mt-1 text-xs leading-snug text-muted-foreground/95 sm:text-[13px] sm:leading-relaxed">
+                            <p className="mt-1 text-[13px] leading-snug text-muted-foreground/95 sm:text-[15px] sm:leading-relaxed">
                               {bump.offer}
                             </p>
                           </div>
@@ -631,51 +771,55 @@ function CheckoutContent() {
             </section>
           </div>
 
-          <aside className="lg:sticky lg:top-24 h-fit">
-            <div className="glass-dark overflow-hidden rounded-[2rem] p-6 md:p-8">
+          <aside className="h-fit min-w-0 w-full max-w-full lg:sticky lg:top-24">
+            <div className="glass-dark max-w-full min-w-0 overflow-hidden rounded-[2rem] p-4 sm:p-6 md:p-8">
               <div className="relative mb-6 aspect-square w-full overflow-hidden rounded-2xl border border-white/10 shadow-lg">
                 <Image src="/images/camisa-checkout-display.png" alt="Sua Edição Sagrada" fill className="object-cover" priority />
               </div>
-              <h3 className="font-display text-lg font-bold uppercase tracking-tight text-white mb-6">Resumo da Compra</h3>
-              <div className="space-y-4 mb-8">
+              <h3 className="mb-6 font-display text-lg font-bold uppercase tracking-tight text-white">Resumo da Compra</h3>
+              <div className="mb-8 min-w-0 space-y-4">
                 {orderSizes.length === 1 ? (
-                  <div className="flex justify-between text-sm">
-                    <span className="text-muted-foreground">Tamanho</span>
-                    <span className="font-bold text-gold-bright">{orderSizes[0]}</span>
+                  <div className="flex min-w-0 justify-between gap-3 text-sm">
+                    <span className="min-w-0 shrink text-muted-foreground">Tamanho</span>
+                    <span className="shrink-0 font-bold text-gold-bright">{orderSizes[0]}</span>
                   </div>
                 ) : (
-                  <div className="space-y-2">
+                  <div className="min-w-0 space-y-2">
                     <p className="text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
                       Tamanhos
                     </p>
                     {orderSizes.map((s, i) => (
-                      <div key={i} className="flex justify-between text-sm">
-                        <span className="text-muted-foreground">Camisa {i + 1}</span>
-                        <span className="font-bold text-gold-bright">{s}</span>
+                      <div key={i} className="flex min-w-0 justify-between gap-3 text-sm">
+                        <span className="min-w-0 shrink text-muted-foreground">Camisa {i + 1}</span>
+                        <span className="shrink-0 font-bold text-gold-bright">{s}</span>
                       </div>
                     ))}
                   </div>
                 )}
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Subtotal ({pricing.quantity} un)</span>
-                  <span className="text-white">{new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pricing.subtotal / 100)}</span>
+                <div className="flex min-w-0 justify-between gap-3 text-sm">
+                  <span className="min-w-0 shrink text-muted-foreground">Subtotal ({pricing.quantity} un)</span>
+                  <span className="shrink-0 tabular-nums text-white">
+                    {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pricing.subtotal / 100)}
+                  </span>
                 </div>
                 {pricing.discountValue > 0 && (
-                  <div className="flex justify-between text-sm text-green-400 font-bold">
-                    <span>Leve 3, Pague 2 (não cumulativa)</span>
-                    <span>- {pricing.discount}</span>
+                  <div className="flex min-w-0 justify-between gap-3 text-sm font-bold text-green-400">
+                    <span className="min-w-0 shrink leading-snug">Leve 3, Pague 2 (não cumulativa)</span>
+                    <span className="shrink-0 tabular-nums">- {pricing.discount}</span>
                   </div>
                 )}
                 {selectedBumps.length > 0 && (
-                  <div className="flex justify-between text-sm text-gold font-bold">
-                    <span>Adicionais</span>
-                    <span>+ {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pricing.bumpsTotal / 100)}</span>
+                  <div className="flex min-w-0 justify-between gap-3 text-sm font-bold text-gold">
+                    <span className="min-w-0 shrink">Adicionais</span>
+                    <span className="shrink-0 tabular-nums">
+                      + {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(pricing.bumpsTotal / 100)}
+                    </span>
                   </div>
                 )}
                 {retention.active && retention.discountCents > 0 && (
-                  <div className="flex justify-between text-sm font-bold text-green-400">
-                    <span>Desconto retenção ({RETENTION_PERCENT}%)</span>
-                    <span>
+                  <div className="flex min-w-0 justify-between gap-3 text-sm font-bold text-green-400">
+                    <span className="min-w-0 shrink leading-snug">Desconto retenção ({RETENTION_PERCENT}%)</span>
+                    <span className="shrink-0 tabular-nums">
                       -{" "}
                       {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(
                         retention.discountCents / 100
@@ -683,46 +827,50 @@ function CheckoutContent() {
                     </span>
                   </div>
                 )}
-                <div className="flex justify-between text-sm font-bold">
-                  <span className="text-muted-foreground">Frete</span>
-                  <span className="text-green-400 uppercase tracking-widest text-[10px]">Grátis</span>
+                <div className="flex min-w-0 justify-between gap-3 text-sm font-bold">
+                  <span className="min-w-0 shrink text-muted-foreground">Frete</span>
+                  <span className="shrink-0 text-[10px] uppercase tracking-widest text-green-400">Grátis</span>
                 </div>
-                <div className="h-px bg-white/10 my-6" />
-                <div className="flex justify-between items-end">
-                  <span className="font-display text-lg font-bold text-white">Total Hoje:</span>
-                  <span className="font-display text-3xl font-bold text-gold-bright tracking-tight">
+                <div className="my-6 h-px bg-white/10" />
+                <div className="flex min-w-0 flex-col gap-1 sm:flex-row sm:items-end sm:justify-between sm:gap-3">
+                  <span className="shrink-0 font-display text-lg font-bold text-white">Total Hoje:</span>
+                  <span className="min-w-0 break-words text-right font-display text-2xl font-bold tabular-nums tracking-tight text-gold-bright sm:text-3xl">
                     {new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" }).format(finalTotalCents / 100)}
                   </span>
                 </div>
               </div>
 
               {pixResult != null && (
-                <div className="mb-6 space-y-4 rounded-2xl border border-gold/25 bg-[#060a12]/90 p-4">
+                <div className="mb-6 min-w-0 max-w-full space-y-4 overflow-hidden rounded-2xl border border-gold/25 bg-[#060a12]/90 p-3 sm:p-4">
                   <p className="text-center font-display text-[10px] font-bold uppercase tracking-[0.28em] text-gold-bright">
                     Pague com Pix
                   </p>
                   {pixQrDataUrl ? (
-                    <div className="relative mx-auto aspect-square w-full max-w-[220px] overflow-hidden rounded-xl border border-white/10 bg-white p-2">
-                      {/* eslint-disable-next-line @next/next/no-img-element */}
-                      <img
-                        src={pixQrDataUrl}
-                        alt="QR Code Pix"
-                        className="h-full w-full object-contain"
-                      />
+                    <div className="flex w-full justify-center px-1">
+                      <div className="relative aspect-square w-full max-w-[min(220px,calc(100vw-3rem))] overflow-hidden rounded-xl border border-white/10 bg-white p-2 sm:max-w-[220px]">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={pixQrDataUrl}
+                          alt="QR Code Pix"
+                          className="h-full w-full max-h-full max-w-full object-contain"
+                        />
+                      </div>
                     </div>
                   ) : null}
-                  <p className="text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">Pix copia e cola</p>
-                  <div className="max-h-24 overflow-y-auto rounded-lg border border-white/10 bg-black/40 p-3 font-mono text-[10px] leading-relaxed text-white/90 break-all">
+                  <p className="text-center text-[10px] font-semibold uppercase tracking-widest text-muted-foreground">
+                    Pix copia e cola
+                  </p>
+                  <div className="max-h-28 min-h-0 max-w-full overflow-x-auto overflow-y-auto rounded-lg border border-white/10 bg-black/40 p-3 font-mono text-[10px] leading-relaxed text-white/90 [overflow-wrap:anywhere]">
                     {pixResult.paymentCode}
                   </div>
                   <Button
                     type="button"
                     variant="outline"
                     size="sm"
-                    className="w-full border-gold/30 text-[11px] font-bold uppercase tracking-widest"
+                    className="w-full max-w-full shrink-0 border-gold/30 text-[11px] font-bold uppercase tracking-widest"
                     onClick={copyPixCode}
                   >
-                    <Copy className="mr-2 h-4 w-4" />
+                    <Copy className="mr-2 h-4 w-4 shrink-0" />
                     Copiar código
                   </Button>
                   {pixResult.idTransaction ? (
@@ -736,10 +884,15 @@ function CheckoutContent() {
               <Button
                 size="xl"
                 onClick={handleFinalize}
-                disabled={pixLoading}
+                disabled={pixLoading || cardSubmitting}
                 className="shimmer-btn w-full font-bold uppercase tracking-widest py-8 rounded-2xl disabled:opacity-60"
               >
-                {pixLoading ? (
+                {cardSubmitting ? (
+                  <>
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    A registrar pedido…
+                  </>
+                ) : pixLoading ? (
                   <>
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
                     A gerar Pix…
