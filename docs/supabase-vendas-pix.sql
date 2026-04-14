@@ -1,4 +1,5 @@
 -- Ligação vendas ↔ Pix Royal Banking (webhook Cash In → status pago no painel).
+-- Se ainda não tens tabela `vendas`, executa primeiro `docs/supabase-vendas.sql`.
 -- Executar no Supabase → SQL Editor após a tabela `vendas` existir.
 
 alter table public.vendas add column if not exists pix_id_transaction text;

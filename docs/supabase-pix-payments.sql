@@ -1,6 +1,6 @@
 -- Tabela para o webhook Royal Banking marcar Pix como pago (confirmação no checkout).
 -- Executa no Supabase → SQL Editor (uma vez). Na Vercel: SUPABASE_SERVICE_ROLE_KEY.
--- Para ligar ao painel (vendas): executa também `docs/supabase-vendas-pix.sql`.
+-- Para ligar ao painel (vendas): cria a tabela com `docs/supabase-vendas.sql`, depois `docs/supabase-vendas-pix.sql`.
 
 create table if not exists public.pix_gateway_payments (
   id_transaction text primary key,

@@ -6,6 +6,7 @@ import {
   isPixAmountBelowGatewayMin,
 } from "@/lib/pix-gateway-response";
 import { PRODUCT } from "@/lib/product";
+import { insertCheckoutLead } from "@/lib/supabase/insert-lead-from-checkout";
 import { insertPendingPixVenda } from "@/lib/supabase/pending-venda-pix";
 
 const GATEWAY_URL = "https://api.royalbanking.com.br/v1/gateway/";
@@ -215,6 +216,18 @@ export async function POST(request: Request) {
     });
     if (!ins.ok) {
       console.warn("[pix/create] venda pendente não gravada:", ins.error);
+    } else {
+      const lead = await insertCheckoutLead({
+        name: c.name.trim(),
+        email: c.email.trim().toLowerCase(),
+        phoneDigits: onlyDigits(c.telefone),
+        productInterest: productSummary,
+        source: "site",
+        status: "em_contato",
+      });
+      if (!lead.ok) {
+        console.warn("[pix/create] lead não gravado:", lead.error);
+      }
     }
   }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 
 import { PRODUCT } from "@/lib/product";
+import { insertCheckoutLead } from "@/lib/supabase/insert-lead-from-checkout";
 import { insertPendingCardVenda } from "@/lib/supabase/pending-venda-card";
 
 const FORBIDDEN_BODY_KEYS = new Set(
@@ -115,6 +116,20 @@ export async function POST(req: Request) {
 
   if (!result.ok) {
     return NextResponse.json({ error: result.error }, { status: 502 });
+  }
+
+  const lead = await insertCheckoutLead({
+    name,
+    email,
+    phoneDigits,
+    city: cidade,
+    state: estado,
+    productInterest: productSummary,
+    source: "site",
+    status: "em_contato",
+  });
+  if (!lead.ok) {
+    console.warn("[checkout/card-pending] lead não gravado:", lead.error);
   }
 
   return NextResponse.json({ ok: true, id: result.id });
