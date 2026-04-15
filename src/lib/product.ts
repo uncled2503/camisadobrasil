@@ -4,8 +4,8 @@ export const PRODUCT = {
   name: "Camisa do Brasil Estilizada",
   shortName: "Brasil Estilizada",
   brandName: "Alpha Brasil",
-  priceFormatted: "R$ 1,00",
-  priceCents: 100,
+  priceFormatted: "R$ 67,90",
+  priceCents: 6790,
   currency: "BRL",
   /** ISO date para `priceValidUntil` no Schema.org (atualize ao mudar campanha). */
   schemaPriceValidUntil: "2026-12-31",
@@ -58,6 +58,20 @@ export const PRODUCT_IMAGE_GALLERY_MACRO_SRC =
 export const PRODUCT_IMAGE_GALLERY_MACRO_V2_SRC =
   "/images/detalhes-costa-web.png" as const;
 
+/** Secção "A Arte da Redenção" — frente e costas com transição. */
+export const PRODUCT_IMAGE_ARTE_REDENCAO_FRONT_SRC =
+  "/images/arte-redencao-frente.png" as const;
+export const PRODUCT_IMAGE_ARTE_REDENCAO_BACK_SRC =
+  "/images/arte-redencao-costas.png" as const;
+export const PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_WEBM_SRC =
+  "/videos/arte-redencao-frente.webm" as const;
+export const PRODUCT_VIDEO_ARTE_REDENCAO_BACK_WEBM_SRC =
+  "/videos/arte-redencao-costas.webm" as const;
+
+/** Modelo Alpha (1) — composição estúdio (5.ª miniatura da galeria premium). */
+export const PRODUCT_IMAGE_MODELO_ALPHA_1_SRC =
+  "/images/modelo-alpha-1.png" as const;
+
 /** Imagem limpa para o carrinho e resumo. */
 export const PRODUCT_IMAGE_CLEAN_SRC = "/images/camisa-brasil-clean.png" as const;
 
@@ -86,7 +100,7 @@ export const GALLERY_IMAGES = [
   },
 ] as const;
 
-/** Galeria premium: 1.ª frontal; 2.ª costas; 3.ª Arte 1 web (close frontal); 4.ª detalhe gola/costa. */
+/** Galeria premium: 1.ª frontal; 2.ª costas; 3.ª Arte 1 web (close frontal); 4.ª detalhe gola/costa; 5.ª Modelo Alpha (1). */
 export const PREMIUM_GALLERY_IMAGES = [
   GALLERY_IMAGES[0],
   {
@@ -95,6 +109,10 @@ export const PREMIUM_GALLERY_IMAGES = [
   },
   GALLERY_IMAGES[2],
   GALLERY_IMAGES[3],
+  {
+    src: PRODUCT_IMAGE_MODELO_ALPHA_1_SRC,
+    alt: "Modelo Alpha — composição com vistas frontal, costas e detalhes da camisa Brasil Alpha Brasil",
+  },
 ] as const;
 
 /** Key visual do hero para meta. */

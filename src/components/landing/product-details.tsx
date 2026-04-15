@@ -1,11 +1,17 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { AnimatePresence, motion } from "framer-motion";
+import { useState } from "react";
 import { SectionReveal, SectionShell, SectionSplit } from "@/components/landing/section-shell";
-import { GALLERY_IMAGES } from "@/lib/product";
+import {
+  PRODUCT_IMAGE_ARTE_REDENCAO_BACK_SRC,
+  PRODUCT_IMAGE_ARTE_REDENCAO_FRONT_SRC,
+  PRODUCT_VIDEO_ARTE_REDENCAO_BACK_WEBM_SRC,
+  PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_WEBM_SRC,
+} from "@/lib/product";
 import { SECTION_STAGGER } from "@/hooks/use-section-motion";
-import { ShieldCheck, Sparkles, Map, Heart } from "lucide-react";
+import { ChevronLeft, ChevronRight, ShieldCheck, Sparkles, Map, Heart } from "lucide-react";
 
 const benefits = [
   { icon: ShieldCheck, title: "Símbolo de Respeito", copy: "O Cristo Redentor em relevo substitui padrões polêmicos por fé e identidade." },
@@ -15,6 +21,21 @@ const benefits = [
 ];
 
 export function ProductDetails() {
+  const [activeImage, setActiveImage] = useState<"front" | "back">("front");
+
+  const activeVideoSrc =
+    activeImage === "front"
+      ? PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_WEBM_SRC
+      : PRODUCT_VIDEO_ARTE_REDENCAO_BACK_WEBM_SRC;
+  const activeImageSrc =
+    activeImage === "front"
+      ? PRODUCT_IMAGE_ARTE_REDENCAO_FRONT_SRC
+      : PRODUCT_IMAGE_ARTE_REDENCAO_BACK_SRC;
+  const activeAlt =
+    activeImage === "front"
+      ? "Modelo com camisa Brasil Alpha vista frontal"
+      : "Modelo com camisa Brasil Alpha vista costas com nome e número 10";
+
   return (
     <SectionShell id="detalhes" variant="default" grain="low" className="py-24 md:py-32">
       <SectionSplit>
@@ -55,17 +76,55 @@ export function ProductDetails() {
           <SectionReveal className="lg:col-span-5 lg:col-start-8">
             <div className="group relative mx-auto aspect-[3/4] max-w-[420px] overflow-hidden rounded-[3rem] shadow-luxe transition-all duration-700 hover:shadow-gold/20">
               <div className="absolute inset-0 z-10 bg-gradient-to-t from-navy-deep/80 via-transparent to-transparent opacity-60 transition-opacity group-hover:opacity-40" />
-              <Image
-                src={GALLERY_IMAGES[1].src}
-                alt="Zoom no detalhe: número 10, escudo CBF e textura Jacquard com Cristo Redentor"
-                fill
-                className="object-cover grayscale transition-all duration-700 group-hover:scale-110 group-hover:grayscale-0"
-                sizes="(max-width: 1024px) 100vw, 420px"
-                loading="lazy"
-              />
+              <AnimatePresence mode="wait">
+                <motion.div
+                  key={activeImage}
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+                  className="absolute inset-0"
+                >
+                  <video
+                    className="h-full w-full object-cover"
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    poster={activeImageSrc}
+                    aria-label={activeAlt}
+                  >
+                    <source src={activeVideoSrc} type="video/webm" />
+                  </video>
+                </motion.div>
+              </AnimatePresence>
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveImage((prev) => (prev === "front" ? "back" : "front"))
+                }
+                className="absolute left-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur transition-colors hover:border-gold/40 hover:text-gold-bright focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 md:h-10 md:w-10"
+                aria-label="Mostrar foto anterior"
+              >
+                <ChevronLeft className="h-4 w-4" />
+              </button>
+              <button
+                type="button"
+                onClick={() =>
+                  setActiveImage((prev) => (prev === "front" ? "back" : "front"))
+                }
+                className="absolute right-4 top-1/2 z-20 inline-flex h-9 w-9 -translate-y-1/2 items-center justify-center rounded-full border border-white/20 bg-black/40 text-white/85 backdrop-blur transition-colors hover:border-gold/40 hover:text-gold-bright focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-gold/40 md:h-10 md:w-10"
+                aria-label="Mostrar próxima foto"
+              >
+                <ChevronRight className="h-4 w-4" />
+              </button>
               <div className="absolute bottom-8 left-8 right-8 z-20">
-                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-bright">Zoom no Detalhe</p>
-                <p className="mt-1 text-sm font-medium text-white/90">Textura Jacquard Sagrada</p>
+                <p className="text-[10px] font-bold uppercase tracking-[0.3em] text-gold-bright">
+                  {activeImage === "front" ? "Vista frontal" : "Vista costas"}
+                </p>
+                <p className="mt-1 text-sm font-medium text-white/90">
+                  Toque nas setas para alternar
+                </p>
               </div>
             </div>
           </SectionReveal>

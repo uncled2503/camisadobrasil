@@ -16,6 +16,7 @@ export const SITE_NAV_LINKS = [
   { href: "#detalhes", label: "Detalhes" },
   { href: "#galeria", label: "Galeria" },
   { href: "#duvidas", label: "Dúvidas" },
+  { href: "#feedback", label: "Envie feedback" },
 ] as const;
 
 function NavAnchor({

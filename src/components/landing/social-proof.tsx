@@ -29,6 +29,8 @@ type ReviewPhotoEntry = {
   imageSrc: string;
   /** `table` = camisa/produto (ex. mesa); `person` = pessoa vestindo — intercalados no carrossel. */
   photoKind: "table" | "person";
+  /** Substitui o `object-position` padrão da foto principal (ex. `object-center`). */
+  coverClassName?: string;
 };
 
 /** Fotos reais de clientes (UGC) — mesmo cartão que o restante do carrossel. */
@@ -48,6 +50,8 @@ const ugcReviewPhotos: ReviewPhotoEntry[] = [
     profileImageSrc: "/images/testimonials/profiles/bruno-t.png",
     imageSrc: "/images/testimonials/ugc/ugc-2.png",
     photoKind: "person",
+    /** Figura um pouco à direita no original — recorte para centrar no cartão. */
+    coverClassName: "object-[44%_center]",
   },
   {
     name: "Letícia M.",
@@ -56,22 +60,27 @@ const ugcReviewPhotos: ReviewPhotoEntry[] = [
     profileImageSrc: "/images/testimonials/profiles/leticia-m.png",
     imageSrc: "/images/testimonials/ugc/ugc-3.png",
     photoKind: "person",
+    /** Selfie com muito teto em cima — baixa o ponto de ancoragem para mostrar mais rosto/camisa. */
+    coverClassName: "object-[center_72%]",
   },
   {
     name: "Camila R.",
-    text: "Chegou certinho e veste super bem. Já quero pedir outra.",
+    text: "Comprei para minha sobrinha e ela adorou.",
     rating: 5,
-    profileImageSrc: reviewPortraitWoman(59),
+    profileImageSrc: "/images/testimonials/profiles/camila-r.png",
     imageSrc: "/images/testimonials/ugc/ugc-4.png",
     photoKind: "person",
+    coverClassName: "object-center",
   },
   {
     name: "Vinícius K.",
     text: "Foto real do pedido — bate com o anúncio. Material de primeira linha.",
     rating: 5,
-    profileImageSrc: reviewPortraitMan(63),
+    profileImageSrc: "/images/testimonials/profiles/vinicius-k.png",
     imageSrc: "/images/testimonials/ugc/ugc-5.png",
     photoKind: "person",
+    /** Pessoa um pouco à esquerda no original — desloca o recorte para centrar no cartão 4:3. */
+    coverClassName: "object-[58%_center]",
   },
   {
     name: "Matheus L.",
@@ -305,7 +314,8 @@ function ReviewMarquee({
                 fill
                 className={cn(
                   "object-cover",
-                  r.photoKind === "person" && "object-[center_22%]"
+                  r.coverClassName ??
+                    (r.photoKind === "person" ? "object-[center_22%]" : undefined)
                 )}
                 sizes="(max-width: 768px) 80vw, 340px"
                 loading="lazy"

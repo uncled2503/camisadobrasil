@@ -10,6 +10,7 @@ import { SocialProof } from "@/components/landing/social-proof";
 import { GuaranteeSection } from "@/components/landing/guarantee-section";
 import { SizeChart } from "@/components/landing/size-chart";
 import { FaqSection } from "@/components/landing/faq-section";
+import { FeedbackSection } from "@/components/landing/feedback-section";
 import { FinalCta } from "@/components/landing/final-cta";
 import { StickyBuyBar } from "@/components/landing/sticky-buy-bar";
 import { SiteNavDesktop, SiteNavMobile } from "@/components/landing/site-nav";
@@ -108,6 +109,7 @@ export function HomePageClient() {
         <GuaranteeSection />
         <SizeChart />
         <FaqSection />
+        <FeedbackSection />
         <FinalCta onBuyNow={() => openCart(1)} />
       </main>
 
