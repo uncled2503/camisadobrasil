@@ -1,7 +1,7 @@
 "use client";
 
 import { motion, useScroll, useTransform, useReducedMotion } from "framer-motion";
-import { useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { TrustBadges } from "./trust-badges";
@@ -39,6 +39,23 @@ export function HeroSection({
   );
 
   const heroItem = HERO_PRODUCT_SLIDES[0];
+
+  const heroVideoRef = useRef<HTMLVideoElement | null>(null);
+  const [heroVideoFailed, setHeroVideoFailed] = useState(false);
+
+  useEffect(() => {
+    if (heroVideoFailed || reduced) return;
+    const el = heroVideoRef.current;
+    if (!el) return;
+    const tryPlay = () => {
+      void el.play().catch(() => {
+        setHeroVideoFailed(true);
+      });
+    };
+    if (el.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) tryPlay();
+    else el.addEventListener("loadeddata", tryPlay, { once: true });
+    return () => el.removeEventListener("loadeddata", tryPlay);
+  }, [heroVideoFailed, reduced, heroItem.mp4Src]);
 
   return (
     <section
@@ -184,20 +201,38 @@ export function HeroSection({
                 initial={{ opacity: 0, scale: 0.9 }}
                 animate={{ opacity: 1, scale: 1 }}
                 transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-                className="hero-product-frame aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-navy-deep/40 backdrop-blur-sm"
+                className="hero-product-frame relative aspect-[4/5] overflow-hidden rounded-[2.5rem] bg-navy-deep/40 backdrop-blur-sm"
               >
-                <video
-                  className="h-full w-full object-cover"
-                  muted
-                  loop
-                  playsInline
-                  autoPlay
-                  poster={heroItem.posterSrc}
-                  aria-label={heroItem.alt}
-                >
-                  <source src={heroItem.webmSrc} type="video/webm" />
-                  <source src={heroItem.mp4Src} type="video/mp4" />
-                </video>
+                {reduced || heroVideoFailed ? (
+                  <Image
+                    src={heroItem.posterSrc}
+                    alt={heroItem.alt}
+                    fill
+                    className="object-cover"
+                    sizes="(max-width: 1024px) 90vw, 500px"
+                    priority
+                  />
+                ) : (
+                  <video
+                    ref={heroVideoRef}
+                    className="video-embed-no-native-ui h-full w-full object-cover"
+                    muted
+                    loop
+                    playsInline
+                    autoPlay
+                    preload="auto"
+                    poster={heroItem.posterSrc}
+                    aria-label={heroItem.alt}
+                    controls={false}
+                    disablePictureInPicture
+                    controlsList="nodownload noremoteplayback nofullscreen"
+                    onError={() => setHeroVideoFailed(true)}
+                  >
+                    {/* MP4 primeiro: Safari/iOS não reproduz WebM */}
+                    <source src={heroItem.mp4Src} type="video/mp4" />
+                    <source src={heroItem.webmSrc} type="video/webm" />
+                  </video>
+                )}
               </motion.div>
             </div>
           </motion.div>

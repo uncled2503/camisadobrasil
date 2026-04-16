@@ -2,12 +2,14 @@
 
 import Image from "next/image";
 import { AnimatePresence, motion } from "framer-motion";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { SectionReveal, SectionShell, SectionSplit } from "@/components/landing/section-shell";
 import {
   PRODUCT_IMAGE_ARTE_REDENCAO_BACK_SRC,
   PRODUCT_IMAGE_ARTE_REDENCAO_FRONT_SRC,
+  PRODUCT_VIDEO_ARTE_REDENCAO_BACK_MP4_SRC,
   PRODUCT_VIDEO_ARTE_REDENCAO_BACK_WEBM_SRC,
+  PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_MP4_SRC,
   PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_WEBM_SRC,
 } from "@/lib/product";
 import { SECTION_STAGGER } from "@/hooks/use-section-motion";
@@ -22,8 +24,18 @@ const benefits = [
 
 export function ProductDetails() {
   const [activeImage, setActiveImage] = useState<"front" | "back">("front");
+  const [videoFailedFront, setVideoFailedFront] = useState(false);
+  const [videoFailedBack, setVideoFailedBack] = useState(false);
+  const arteVideoRef = useRef<HTMLVideoElement | null>(null);
 
-  const activeVideoSrc =
+  const activeVideoFailed =
+    activeImage === "front" ? videoFailedFront : videoFailedBack;
+
+  const activeVideoMp4Src =
+    activeImage === "front"
+      ? PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_MP4_SRC
+      : PRODUCT_VIDEO_ARTE_REDENCAO_BACK_MP4_SRC;
+  const activeVideoWebmSrc =
     activeImage === "front"
       ? PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_WEBM_SRC
       : PRODUCT_VIDEO_ARTE_REDENCAO_BACK_WEBM_SRC;
@@ -35,6 +47,22 @@ export function ProductDetails() {
     activeImage === "front"
       ? "Modelo com camisa Brasil Alpha vista frontal"
       : "Modelo com camisa Brasil Alpha vista costas com nome e número 10";
+
+  useEffect(() => {
+    if (activeVideoFailed) return;
+    const el = arteVideoRef.current;
+    if (!el) return;
+    const side = activeImage;
+    const tryPlay = () => {
+      void el.play().catch(() => {
+        if (side === "front") setVideoFailedFront(true);
+        else setVideoFailedBack(true);
+      });
+    };
+    if (el.readyState >= HTMLMediaElement.HAVE_CURRENT_DATA) tryPlay();
+    else el.addEventListener("loadeddata", tryPlay, { once: true });
+    return () => el.removeEventListener("loadeddata", tryPlay);
+  }, [activeImage, activeVideoFailed, activeVideoMp4Src, activeVideoWebmSrc]);
 
   return (
     <SectionShell id="detalhes" variant="default" grain="low" className="py-24 md:py-32">
@@ -85,17 +113,40 @@ export function ProductDetails() {
                   transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
                   className="absolute inset-0"
                 >
-                  <video
-                    className="h-full w-full object-cover"
-                    muted
-                    loop
-                    playsInline
-                    autoPlay
-                    poster={activeImageSrc}
-                    aria-label={activeAlt}
-                  >
-                    <source src={activeVideoSrc} type="video/webm" />
-                  </video>
+                  {activeVideoFailed ? (
+                    <Image
+                      src={activeImageSrc}
+                      alt={activeAlt}
+                      fill
+                      className="object-cover"
+                      sizes="(max-width: 768px) 90vw, 420px"
+                      loading="lazy"
+                    />
+                  ) : (
+                    <video
+                      ref={arteVideoRef}
+                      key={`${activeImage}-video`}
+                      className="video-embed-no-native-ui h-full w-full object-cover"
+                      muted
+                      loop
+                      playsInline
+                      autoPlay
+                      preload="auto"
+                      poster={activeImageSrc}
+                      aria-label={activeAlt}
+                      controls={false}
+                      disablePictureInPicture
+                      controlsList="nodownload noremoteplayback nofullscreen"
+                      onError={() =>
+                        activeImage === "front"
+                          ? setVideoFailedFront(true)
+                          : setVideoFailedBack(true)
+                      }
+                    >
+                      <source src={activeVideoMp4Src} type="video/mp4" />
+                      <source src={activeVideoWebmSrc} type="video/webm" />
+                    </video>
+                  )}
                 </motion.div>
               </AnimatePresence>
               <button

@@ -67,6 +67,11 @@ export const PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_WEBM_SRC =
   "/videos/arte-redencao-frente.webm" as const;
 export const PRODUCT_VIDEO_ARTE_REDENCAO_BACK_WEBM_SRC =
   "/videos/arte-redencao-costas.webm" as const;
+/** H.264 — necessário no Safari/iOS (WebM não é suportado). Colocar os ficheiros em `public/videos/`. */
+export const PRODUCT_VIDEO_ARTE_REDENCAO_FRONT_MP4_SRC =
+  "/videos/arte-redencao-frente.mp4" as const;
+export const PRODUCT_VIDEO_ARTE_REDENCAO_BACK_MP4_SRC =
+  "/videos/arte-redencao-costas.mp4" as const;
 
 /** Modelo Alpha (1) — composição estúdio (5.ª miniatura da galeria premium). */
 export const PRODUCT_IMAGE_MODELO_ALPHA_1_SRC =

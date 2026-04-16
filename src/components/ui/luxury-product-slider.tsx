@@ -60,10 +60,11 @@ export function LuxuryProductSlider({
             muted
             loop={!!reduced}
             playsInline
-            autoPlay={!!reduced}
+            autoPlay
             preload="auto"
             poster={currentSlide.posterSrc}
             aria-label={currentSlide.alt}
+            controls={false}
           >
             <source src={currentSlide.src} type="video/mp4" />
           </video>
