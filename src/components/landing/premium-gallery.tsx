@@ -46,9 +46,13 @@ function CampaignBackground() {
 export function PremiumGallery() {
   const [active, setActive] = useState(0);
   const [lightboxOpen, setLightboxOpen] = useState(false);
+  const [showAllThumbs, setShowAllThumbs] = useState(false);
   const reduced = useReducedMotion();
 
   const activeItem = PREMIUM_GALLERY_IMAGES[active];
+  const visibleThumbs = showAllThumbs
+    ? PREMIUM_GALLERY_IMAGES
+    : PREMIUM_GALLERY_IMAGES.slice(0, 4);
 
   return (
     <SectionShell
@@ -217,7 +221,7 @@ export function PremiumGallery() {
                     aria-hidden
                   />
 
-                  {PREMIUM_GALLERY_IMAGES.map((img, i) => {
+                  {visibleThumbs.map((img, i) => {
                     const isActive = active === i;
                     return (
                       <button
@@ -270,6 +274,15 @@ export function PremiumGallery() {
                     );
                   })}
                 </div>
+                {!showAllThumbs && PREMIUM_GALLERY_IMAGES.length > visibleThumbs.length ? (
+                  <button
+                    type="button"
+                    onClick={() => setShowAllThumbs(true)}
+                    className="mt-3 w-full rounded-xl border border-white/[0.08] bg-white/[0.02] px-3 py-2 text-[10px] font-medium uppercase tracking-[0.22em] text-muted-foreground transition-colors hover:border-gold/25 hover:text-gold-bright lg:mt-4"
+                  >
+                    Ver mais
+                  </button>
+                ) : null}
               </div>
             </div>
 
@@ -281,35 +294,37 @@ export function PremiumGallery() {
         </div>
       </div>
 
-      <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
-        <DialogContent
-          className={cn(
-            "flex max-h-[min(92dvh,960px)] w-[min(calc(100vw-1.25rem),920px)] max-w-none flex-col gap-0 overflow-hidden border border-white/[0.09] bg-[#05080f]/[0.98] p-2 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.95),0_0_0_1px_rgba(212,175,55,0.08)] backdrop-blur-2xl sm:p-3 md:p-4",
-            "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl sm:rounded-[1.35rem]"
-          )}
-        >
-          <DialogTitle className="sr-only">{activeItem.alt}</DialogTitle>
-          <DialogDescription className="sr-only">
-            Visualização ampliada da foto da campanha.
-          </DialogDescription>
-          <div className="relative flex min-h-0 w-full flex-1 items-center justify-center rounded-xl bg-gradient-to-b from-[#03060c] to-[#050a12]">
-            <div className="relative h-[min(82dvh,880px)] w-full">
-              <Image
-                src={activeItem.src}
-                alt={activeItem.alt}
-                fill
-                className="object-contain object-center"
-                sizes="(max-width: 920px) 96vw, 880px"
-                loading="lazy"
-                quality={95}
-              />
+      {lightboxOpen ? (
+        <Dialog open={lightboxOpen} onOpenChange={setLightboxOpen}>
+          <DialogContent
+            className={cn(
+              "flex max-h-[min(92dvh,960px)] w-[min(calc(100vw-1.25rem),920px)] max-w-none flex-col gap-0 overflow-hidden border border-white/[0.09] bg-[#05080f]/[0.98] p-2 shadow-[0_24px_80px_-24px_rgba(0,0,0,0.95),0_0_0_1px_rgba(212,175,55,0.08)] backdrop-blur-2xl sm:p-3 md:p-4",
+              "left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 rounded-2xl sm:rounded-[1.35rem]"
+            )}
+          >
+            <DialogTitle className="sr-only">{activeItem.alt}</DialogTitle>
+            <DialogDescription className="sr-only">
+              Visualização ampliada da foto da campanha.
+            </DialogDescription>
+            <div className="relative flex min-h-0 w-full flex-1 items-center justify-center rounded-xl bg-gradient-to-b from-[#03060c] to-[#050a12]">
+              <div className="relative h-[min(82dvh,880px)] w-full">
+                <Image
+                  src={activeItem.src}
+                  alt={activeItem.alt}
+                  fill
+                  className="object-contain object-center"
+                  sizes="(max-width: 920px) 96vw, 880px"
+                  loading="lazy"
+                  quality={95}
+                />
+              </div>
             </div>
-          </div>
-          <p className="mt-2 px-1 text-center text-[10px] uppercase tracking-[0.28em] text-muted-foreground/85 sm:mt-3">
-            Esc · clique fora ou ✕ para fechar
-          </p>
-        </DialogContent>
-      </Dialog>
+            <p className="mt-2 px-1 text-center text-[10px] uppercase tracking-[0.28em] text-muted-foreground/85 sm:mt-3">
+              Esc · clique fora ou ✕ para fechar
+            </p>
+          </DialogContent>
+        </Dialog>
+      ) : null}
     </SectionShell>
   );
 }

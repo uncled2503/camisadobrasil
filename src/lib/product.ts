@@ -115,6 +115,10 @@ export const PREMIUM_GALLERY_IMAGES = [
     alt: "Modelo veste a camisa Brasil Alpha — pose frontal com braços cruzados, escudo CBF, Cristo em jacquard e número 10",
   },
   {
+    src: "/images/campaign/galeria-modelo-06-detalhe.png",
+    alt: "Close de peito da camisa Brasil Alpha — escudo CBF, Cristo Redentor em jacquard e número 10 em destaque",
+  },
+  {
     src: "/images/campaign/galeria-modelo-02.png",
     alt: "Modelo com a camisa Brasil Alpha — enquadramento três quartos, destaque para caimento e detalhes dourados",
   },

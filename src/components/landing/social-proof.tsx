@@ -1,7 +1,4 @@
-"use client";
-
 import Image from "next/image";
-import { Star } from "lucide-react";
 import { SectionReveal, SectionShell } from "@/components/landing/section-shell";
 import { reviewPortraitMan, reviewPortraitWoman } from "@/lib/review-portrait-urls";
 import { cn } from "@/lib/utils";
@@ -260,25 +257,20 @@ const reviews = (() => {
 
 type ReviewEntry = (typeof reviews)[number];
 
-function Stars({ n }: { n: number }) {
+function StarsText({ n }: { n: number }) {
   return (
-    <div className="flex gap-0.5" aria-label={`${n} de 5 estrelas`}>
-      {Array.from({ length: 5 }).map((_, i) => (
-        <Star
-          key={i}
-          className={cn(
-            "h-3.5 w-3.5",
-            i < n ? "fill-gold text-gold" : "fill-white/[0.06] text-white/[0.06]"
-          )}
-          strokeWidth={0}
-        />
-      ))}
+    <div
+      aria-label={`${n} de 5 estrelas`}
+      className="text-[11px] uppercase tracking-[0.28em] text-gold"
+    >
+      {"★★★★★".slice(0, n)}
     </div>
   );
 }
 
-const firstRow = reviews.slice(0, reviews.length / 2);
-const secondRow = reviews.slice(reviews.length / 2);
+const MAX_VISIBLE_PER_ROW = 3;
+const firstRow = reviews.slice(0, MAX_VISIBLE_PER_ROW);
+const secondRow = reviews.slice(MAX_VISIBLE_PER_ROW, MAX_VISIBLE_PER_ROW * 2);
 
 function ReviewMarquee({
   reviews,
@@ -323,20 +315,21 @@ function ReviewMarquee({
             </div>
             <div className="p-6">
               <div className="flex items-center gap-4">
-                <div className="relative h-12 w-12 shrink-0 overflow-hidden rounded-full">
-                  <Image
+                <div className="h-12 w-12 shrink-0 overflow-hidden rounded-full bg-white/[0.04]">
+                  {/* Avatar simples: reduz markup e srcset de itens repetidos */}
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
                     src={r.profileImageSrc}
                     alt={`Foto de perfil de ${r.name}`}
-                    fill
-                    className="object-cover"
-                    sizes="48px"
+                    className="h-full w-full object-cover"
                     loading="lazy"
+                    decoding="async"
                   />
                 </div>
                 <div>
                   <p className="font-display text-sm font-semibold tracking-tight">{r.name}</p>
                   <div className="mt-1">
-                    <Stars n={r.rating} />
+                    <StarsText n={r.rating} />
                   </div>
                 </div>
               </div>
