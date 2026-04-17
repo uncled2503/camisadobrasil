@@ -55,7 +55,6 @@ function ObrigadoContent() {
             Recebemos o seu pedido com sucesso. Abaixo estão os detalhes para acompanhar a sua entrega.
           </p>
 
-          {/* NOVO: Bloco de Rastreio */}
           <div className="mt-10 overflow-hidden rounded-2xl border border-gold/20 bg-gold/5 p-6 text-left">
             <div className="flex items-center gap-3 text-gold-bright mb-4">
               <Package size={20} />
@@ -63,7 +62,7 @@ function ObrigadoContent() {
             </div>
             
             <p className="text-[13px] text-muted-foreground leading-relaxed mb-5">
-              O seu código de rastreio já foi gerado. Utilize-o no nosso site oficial de logística para ver a rota da sua encomenda.
+              O seu código de rastreio já foi gerado. Acompanhe a viagem do seu pacote em tempo real pela nossa plataforma.
             </p>
 
             <div className="flex flex-col gap-3">
@@ -78,15 +77,13 @@ function ObrigadoContent() {
                 </button>
               </div>
 
-              <a 
-                href="https://rastreio-alphabrasil.com.br" // URL de exemplo
-                target="_blank" 
-                rel="noopener noreferrer"
+              <Link 
+                href={`/rastreio?code=${trackingCode}`}
                 className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gold/10 border border-gold/30 text-[11px] font-bold uppercase tracking-widest text-gold-bright hover:bg-gold/20 transition-all"
               >
-                Aceder ao site de rastreio
+                Acompanhar pedido agora
                 <ExternalLink size={14} />
-              </a>
+              </Link>
             </div>
             
             <p className="mt-4 text-[10px] text-center text-muted-foreground/60 italic">
