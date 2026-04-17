@@ -12,12 +12,9 @@ export type InsertCheckoutLeadInput = {
   productInterest: string;
   source?: LeadSource;
   status?: LeadStatus;
+  codigoRastreio?: string; // Novo campo
 };
 
-/**
- * Insere um registo em `public.leads` após checkout (Pix/cartão).
- * Usa service role. Falhas não devem bloquear o fluxo de pagamento — só log no chamador.
- */
 export async function insertCheckoutLead(
   p: InsertCheckoutLeadInput
 ): Promise<{ ok: true } | { ok: false; error: string }> {
@@ -45,6 +42,7 @@ export async function insertCheckoutLead(
       product_interest: p.productInterest.trim(),
       status,
       created_at: when,
+      codigo_rastreio: p.codigoRastreio, // Gravando rastreio no lead
     },
     {
       id,
@@ -57,6 +55,7 @@ export async function insertCheckoutLead(
       produto_interesse: p.productInterest.trim(),
       status,
       criado_em: when,
+      codigo_rastreio: p.codigoRastreio,
     },
   ];
 

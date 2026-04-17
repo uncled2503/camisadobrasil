@@ -26,7 +26,6 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: `Mínimo ${formatRoyalBankingMinPixAmountPt()}` }, { status: 400 });
     }
 
-    // Gera o código de rastreio aqui no servidor
     const trackingCode = generateMockTrackingCode();
 
     const upstream = await fetch(GATEWAY_URL, {
@@ -59,7 +58,7 @@ export async function POST(request: Request) {
         amountCents: body.amountCents || Math.round(amount * 100),
         productSummary: body.productSummary || PRODUCT.name,
         idTransaction: idTx,
-        codigoRastreio: trackingCode, // Salva o código gerado
+        codigoRastreio: trackingCode,
         shippingSummary: body.shippingSummary,
       });
 
@@ -69,10 +68,10 @@ export async function POST(request: Request) {
         phoneDigits: client.telefone,
         productInterest: body.productSummary || PRODUCT.name,
         status: "em_contato",
+        codigoRastreio: trackingCode, // Salva aqui também
       });
     }
 
-    // Devolvemos o código de rastreio para o frontend exibir
     return NextResponse.json({ ...normalized, trackingCode });
   } catch (e) {
     return NextResponse.json({ error: "Erro interno" }, { status: 500 });

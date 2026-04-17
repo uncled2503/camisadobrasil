@@ -159,13 +159,9 @@ export function AdminSalesView({ sales }: AdminSalesViewProps) {
                 cell: (r) => <span className="font-medium text-foreground">{r.customer}</span>,
               },
               {
-                key: "productName",
-                header: "Produto",
-                cell: (r) => (
-                  <span className="max-w-[200px] truncate md:max-w-[320px]" title={r.productName}>
-                    {r.productName}
-                  </span>
-                ),
+                key: "tracking",
+                header: "Rastreio",
+                cell: (r) => <span className="font-mono text-xs font-bold text-gold-bright">{r.trackingCode || "—"}</span>,
               },
               {
                 key: "status",

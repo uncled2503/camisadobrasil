@@ -182,28 +182,16 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
                 header: "Nome",
                 cell: (r) => <span className="font-medium text-foreground">{r.name}</span>,
               },
-              { key: "phone", header: "Telefone", cell: (r) => <span className="whitespace-nowrap">{r.phone}</span> },
               {
-                key: "email",
-                header: "E-mail",
-                cell: (r) => (
-                  <span className="max-w-[200px] truncate md:max-w-[240px]" title={r.email}>
-                    {r.email}
-                  </span>
-                ),
+                key: "tracking",
+                header: "Código de Rastreio",
+                cell: (r) => <span className="font-mono text-xs font-bold text-gold-bright">{r.trackingCode || "—"}</span>,
               },
+              { key: "phone", header: "Telefone", cell: (r) => <span className="whitespace-nowrap">{r.phone}</span> },
               {
                 key: "city",
                 header: "Cidade",
                 cell: (r) => <span className="max-w-[140px] truncate md:max-w-[180px]">{r.city}</span>,
-              },
-              {
-                key: "state",
-                header: "UF",
-                className: "w-14",
-                cell: (r) => (
-                  <span className="font-mono text-xs font-semibold tracking-wide text-muted-foreground">{r.state}</span>
-                ),
               },
               {
                 key: "source",
@@ -212,28 +200,6 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
                 cell: (r) => (
                   <span className="text-[13px] text-foreground/90">{formatLeadSource(r.source)}</span>
                 ),
-              },
-              {
-                key: "productInterest",
-                header: "Interesse",
-                className: "min-w-[10rem] max-w-[14rem]",
-                cell: (r) => (
-                  <span
-                    className={cn(
-                      "line-clamp-2 rounded-lg border border-gold/25 bg-gold/[0.08] px-2.5 py-1.5 text-[13px] font-medium leading-snug text-gold-bright/95",
-                      !r.productInterest?.trim() && "border-white/[0.08] bg-white/[0.03] font-normal text-muted-foreground"
-                    )}
-                    title={r.productInterest || undefined}
-                  >
-                    {r.productInterest?.trim() ? r.productInterest : "—"}
-                  </span>
-                ),
-              },
-              {
-                key: "contact",
-                header: "Contato",
-                className: "w-[7.5rem]",
-                cell: (r) => <AdminLeadQuickContact phone={r.phone} email={r.email} />,
               },
               {
                 key: "status",

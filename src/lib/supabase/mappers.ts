@@ -66,7 +66,6 @@ function isoDate(v: unknown): string {
   return Number.isNaN(d.getTime()) ? new Date(0).toISOString() : d.toISOString();
 }
 
-/** Mapeia linha da tabela `leads` (aceita nomes em PT ou snake_case). */
 export function mapLeadRow(r: Record<string, unknown>): Lead {
   const id = str(pick(r, ["id", "lead_id"]));
   return {
@@ -82,10 +81,10 @@ export function mapLeadRow(r: Record<string, unknown>): Lead {
     ),
     status: normLeadStatus(str(pick(r, ["status"]))),
     createdAt: isoDate(pick(r, ["created_at", "criado_em", "createdAt"])),
+    trackingCode: str(pick(r, ["codigo_rastreio", "tracking_code", "trackingCode"])),
   };
 }
 
-/** Mapeia linha da tabela `vendas`. */
 export function mapVendaRow(r: Record<string, unknown>): Sale {
   const id = str(pick(r, ["id", "pedido_id", "order_id"]));
   const phoneVal = pick(r, ["phone", "telefone", "tel"]);
@@ -101,10 +100,10 @@ export function mapVendaRow(r: Record<string, unknown>): Sale {
     date: isoDate(pick(r, ["date", "data", "created_at", "criado_em", "pedido_em", "data_pedido"])),
     productName: str(pick(r, ["product_name", "produto", "produto_nome", "item", "descricao"])),
     paymentMethod: normPayment(str(pick(r, ["payment_method", "metodo_pagamento", "forma_pagamento"]))),
+    trackingCode: str(pick(r, ["codigo_rastreio", "tracking_code", "trackingCode"])),
   };
 }
 
-/** Mapeia linha da tabela `clientes`. */
 export function mapClienteRow(r: Record<string, unknown>): Client {
   const id = str(pick(r, ["id", "cliente_id"]));
   return {
