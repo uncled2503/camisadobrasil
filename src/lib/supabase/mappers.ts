@@ -42,16 +42,7 @@ function normPayment(s: string): PaymentMethod {
   return "pendente";
 }
 
-const SOURCES: LeadSource[] = [
-  "instagram",
-  "facebook",
-  "google",
-  "whatsapp",
-  "indicacao",
-  "site",
-  "tiktok",
-  "outro",
-];
+const SOURCES: LeadSource[] = ["instagram", "facebook", "google", "whatsapp", "indicacao", "site", "tiktok", "outro"];
 
 function normSource(s: string): LeadSource {
   const x = s.toLowerCase() as LeadSource;
@@ -70,38 +61,39 @@ export function mapLeadRow(r: Record<string, unknown>): Lead {
   const id = str(pick(r, ["id", "lead_id"]));
   return {
     id: id || `lead-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-    name: str(pick(r, ["name", "nome", "full_name", "nome_completo"])),
+    name: str(pick(r, ["nome", "name", "full_name"])),
     email: str(pick(r, ["email", "e_mail"])),
-    phone: str(pick(r, ["phone", "telefone", "tel", "celular"])),
-    city: str(pick(r, ["city", "cidade", "municipio"])),
-    state: str(pick(r, ["state", "estado", "uf"])),
-    source: normSource(str(pick(r, ["source", "origem", "canal"]))),
-    productInterest: str(
-      pick(r, ["product_interest", "produto_interesse", "productInterest", "interesse", "produto"])
-    ),
+    phone: str(pick(r, ["telefone", "phone", "tel", "celular"])),
+    city: str(pick(r, ["cidade", "city", "municipio"])),
+    state: str(pick(r, ["estado", "state", "uf"])),
+    source: normSource(str(pick(r, ["origem", "source", "canal"]))),
+    productInterest: str(pick(r, ["produto_interesse", "product_interest"])),
     status: normLeadStatus(str(pick(r, ["status"]))),
-    createdAt: isoDate(pick(r, ["created_at", "criado_em", "createdAt"])),
-    trackingCode: str(pick(r, ["codigo_rastreio", "tracking_code", "trackingCode"])),
-    cpf: str(pick(r, ["cpf", "documento", "document"])),
+    createdAt: isoDate(pick(r, ["created_at", "criado_em"])),
+    trackingCode: str(pick(r, ["codigo_rastreio"])),
+    cpf: str(pick(r, ["cpf", "documento"])),
   };
 }
 
 export function mapVendaRow(r: Record<string, unknown>): Sale {
-  const id = str(pick(r, ["id", "pedido_id", "order_id"]));
-  const phoneVal = pick(r, ["phone", "telefone", "tel"]);
+  const id = str(pick(r, ["id", "pedido_id"]));
+  const pedidoCod = str(pick(r, ["pedido_codigo", "id_transaction"]));
+  const methodStr = str(pick(r, ["metodo_pagamento", "forma_pagamento", "payment_method"]));
+  
+  // A tabela pode não ter 'metodo_pagamento', inferimos se vier de cartão (prefixo CARD-) ou PIX
+  const method = methodStr ? normPayment(methodStr) : (pedidoCod.startsWith("CARD") ? "cartao" : "pix");
+
   return {
     id: id || `PED-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-    customer: str(pick(r, ["customer", "cliente", "nome_cliente", "customer_name", "nome"])),
-    email: str(pick(r, ["email"])),
-    phone: phoneVal !== undefined ? str(phoneVal) : undefined,
-    amountCents: num(
-      pick(r, ["amount_cents", "amount_centavos", "valor_centavos", "valor_cents", "total_centavos", "valor"])
-    ),
-    status: normOrderStatus(str(pick(r, ["status", "status_pagamento"]))),
-    date: isoDate(pick(r, ["date", "data", "created_at", "criado_em", "pedido_em", "data_pedido"])),
-    productName: str(pick(r, ["product_name", "produto", "produto_nome", "item", "descricao"])),
-    paymentMethod: normPayment(str(pick(r, ["payment_method", "metodo_pagamento", "forma_pagamento"]))),
-    trackingCode: str(pick(r, ["codigo_rastreio", "tracking_code", "trackingCode"])),
+    customer: str(pick(r, ["cliente_nome", "customer", "nome"])),
+    email: str(pick(r, ["email"])), // Vendas não tem email, mas fica p/ compatibilidade UI
+    phone: str(pick(r, ["telefone", "phone"])), // Vendas não tem phone
+    amountCents: num(pick(r, ["valor", "amount_cents"])),
+    status: normOrderStatus(str(pick(r, ["status_pagamento", "status"]))),
+    date: isoDate(pick(r, ["created_at", "date"])),
+    productName: str(pick(r, ["produto", "product_name"])),
+    paymentMethod: method,
+    trackingCode: str(pick(r, ["codigo_rastreio"])),
   };
 }
 
@@ -109,14 +101,12 @@ export function mapClienteRow(r: Record<string, unknown>): Client {
   const id = str(pick(r, ["id", "cliente_id"]));
   return {
     id: id || `CLI-${Date.now()}-${Math.random().toString(36).slice(2, 9)}`,
-    name: str(pick(r, ["name", "nome", "full_name", "nome_completo"])),
+    name: str(pick(r, ["nome", "name", "full_name"])),
     email: str(pick(r, ["email"])),
-    phone: str(pick(r, ["phone", "telefone", "tel"])),
-    city: str(pick(r, ["city", "cidade"])),
-    ordersCount: Math.max(0, num(pick(r, ["orders_count", "total_pedidos", "pedidos", "qtd_pedidos"]))),
-    lifetimeCents: num(
-      pick(r, ["lifetime_cents", "total_gasto_centavos", "valor_total_centavos", "ltv_cents", "total_gasto"])
-    ),
-    lastOrderAt: isoDate(pick(r, ["last_order_at", "ultima_compra", "ultimo_pedido_em", "updated_at"])),
+    phone: str(pick(r, ["telefone", "phone"])),
+    city: str(pick(r, ["cidade", "city"])),
+    ordersCount: Math.max(0, num(pick(r, ["total_pedidos", "orders_count", "pedidos"]))),
+    lifetimeCents: num(pick(r, ["total_gasto_centavos", "lifetime_cents", "ltv_cents"])),
+    lastOrderAt: isoDate(pick(r, ["ultima_compra", "last_order_at", "updated_at"])),
   };
 }

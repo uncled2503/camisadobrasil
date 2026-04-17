@@ -18,7 +18,6 @@ function isNonEmptyString(v: unknown): v is string {
   return typeof v === "string" && v.trim().length > 0;
 }
 
-/** MM/AA com dígitos */
 function validExpiry(s: string): boolean {
   return /^\d{2}\/\d{2}$/.test(s);
 }
@@ -61,64 +60,30 @@ export async function POST(req: Request) {
   const cidade = isNonEmptyString(body.cidade) ? body.cidade.trim() : "";
   const estado = isNonEmptyString(body.estado) ? body.estado.replace(/\s/g, "").toUpperCase() : "";
 
-  if (cep.length !== 8) {
-    return NextResponse.json({ error: "CEP deve ter 8 dígitos." }, { status: 400 });
-  }
-  if (!endereco || !numero || !bairro || !cidade) {
-    return NextResponse.json({ error: "Preencha endereço, número, bairro e cidade." }, { status: 400 });
-  }
-  if (estado.length !== 2 || !/^[A-Z]{2}$/.test(estado)) {
-    return NextResponse.json({ error: "Estado (UF) inválido — use 2 letras (ex.: SP)." }, { status: 400 });
-  }
+  if (cep.length !== 8) return NextResponse.json({ error: "CEP deve ter 8 dígitos." }, { status: 400 });
+  if (!endereco || !numero || !bairro || !cidade) return NextResponse.json({ error: "Preencha endereço, número, bairro e cidade." }, { status: 400 });
+  if (estado.length !== 2 || !/^[A-Z]{2}$/.test(estado)) return NextResponse.json({ error: "Estado (UF) inválido — use 2 letras." }, { status: 400 });
 
   const shippingSummary = `${cep.slice(0, 5)}-${cep.slice(5)} · ${endereco}, ${numero}${complemento ? ` — ${complemento}` : ""} · ${bairro} · ${cidade}/${estado}`;
 
-  if (!name || !email || !phone || !cpf) {
-    return NextResponse.json({ error: "Preencha nome, e-mail, telefone e CPF/CNPJ." }, { status: 400 });
-  }
-  if (email !== confirmEmail) {
-    return NextResponse.json({ error: "Os e-mails não coincidem." }, { status: 400 });
-  }
+  if (!name || !email || !phone || !cpf) return NextResponse.json({ error: "Preencha nome, e-mail, telefone e CPF/CNPJ." }, { status: 400 });
+  if (email !== confirmEmail) return NextResponse.json({ error: "Os e-mails não coincidem." }, { status: 400 });
+  
   const docDigits = cpf.replace(/\D/g, "");
-  if (docDigits.length !== 11 && docDigits.length !== 14) {
-    return NextResponse.json({ error: "CPF ou CNPJ inválido." }, { status: 400 });
-  }
+  if (docDigits.length !== 11 && docDigits.length !== 14) return NextResponse.json({ error: "CPF ou CNPJ inválido." }, { status: 400 });
+  
   const phoneDigits = phone.replace(/\D/g, "");
-  if (phoneDigits.length < 10) {
-    return NextResponse.json({ error: "Telefone inválido." }, { status: 400 });
-  }
-  if (!/^\d{4}$/.test(cardLast4)) {
-    return NextResponse.json({ error: "Informe apenas os últimos 4 dígitos do cartão (validação no servidor)." }, { status: 400 });
-  }
-  if (!validExpiry(cardExpiry)) {
-    return NextResponse.json({ error: "Validade inválida (use MM/AA)." }, { status: 400 });
-  }
-  if (!cardholderName) {
-    return NextResponse.json({ error: "Informe o nome no cartão." }, { status: 400 });
-  }
-  if (!Number.isFinite(amountCents) || amountCents < 100 || amountCents > 50_000_000) {
-    return NextResponse.json({ error: "Valor do pedido inválido." }, { status: 400 });
-  }
+  if (phoneDigits.length < 10) return NextResponse.json({ error: "Telefone inválido." }, { status: 400 });
+  if (!/^\d{4}$/.test(cardLast4)) return NextResponse.json({ error: "Informe apenas os últimos 4 dígitos do cartão." }, { status: 400 });
+  if (!validExpiry(cardExpiry)) return NextResponse.json({ error: "Validade inválida (use MM/AA)." }, { status: 400 });
+  if (!cardholderName) return NextResponse.json({ error: "Informe o nome no cartão." }, { status: 400 });
+  if (!Number.isFinite(amountCents) || amountCents < 100 || amountCents > 50_000_000) return NextResponse.json({ error: "Valor do pedido inválido." }, { status: 400 });
 
   const productSummary = `${PRODUCT.name} (${quantity} un.)`;
-
-  const result = await insertPendingCardVenda({
-    customerName: name,
-    email,
-    phone: phoneDigits,
-    amountCents,
-    productSummary,
-    cardLast4,
-    cardExpiry,
-    cardholderName,
-    shippingSummary,
-  });
-
-  if (!result.ok) {
-    return NextResponse.json({ error: result.error }, { status: 502 });
-  }
+  const leadId = crypto.randomUUID();
 
   const lead = await insertCheckoutLead({
+    id: leadId,
     name,
     email,
     phoneDigits,
@@ -129,8 +94,21 @@ export async function POST(req: Request) {
     status: "em_contato",
     cpf: docDigits,
   });
+
   if (!lead.ok) {
     console.warn("[checkout/card-pending] lead não gravado:", lead.error);
+  }
+
+  const result = await insertPendingCardVenda({
+    leadId,
+    customerName: name,
+    amountCents,
+    productSummary: `${productSummary} · Cartão ****${cardLast4}`,
+    shippingSummary,
+  });
+
+  if (!result.ok) {
+    return NextResponse.json({ error: result.error }, { status: 502 });
   }
 
   return NextResponse.json({ ok: true, id: result.id });

@@ -26,42 +26,40 @@ export async function POST(request: Request) {
     }
 
     const trackingCode = generateMockTrackingCode();
+    const leadId = crypto.randomUUID();
 
     // ====== MODO MOCK PARA TESTES SEM API KEY ======
     if (!apiKey) {
       console.warn("[API Pix] ROYALBANKING_API_KEY não encontrada. Usando MODO MOCK.");
       const mockId = `mock_${crypto.randomUUID().split("-")[0]}`;
       
-      await insertPendingPixVenda({
-        customerName: client.name,
-        email: client.email,
-        phone: client.telefone,
-        amountCents: body.amountCents || Math.round(amount * 100),
-        productSummary: body.productSummary || PRODUCT.name,
-        idTransaction: mockId,
-        codigoRastreio: trackingCode,
-        shippingSummary: body.shippingSummary,
-      });
-
       await insertCheckoutLead({
+        id: leadId,
         name: client.name,
         email: client.email,
         phoneDigits: client.telefone,
         productInterest: body.productSummary || PRODUCT.name,
         status: "em_contato",
-        codigoRastreio: trackingCode,
         cpf: client.document.replace(/\D/g, ""),
       });
 
-      // Aprova o pagamento automaticamente 4 segundos depois para simular o Webhook
+      await insertPendingPixVenda({
+        leadId,
+        customerName: client.name,
+        amountCents: body.amountCents || Math.round(amount * 100),
+        productSummary: body.productSummary || PRODUCT.name,
+        idTransaction: mockId,
+        shippingSummary: body.shippingSummary,
+      });
+
+      // Aprova o pagamento automaticamente 4 segundos depois
       setTimeout(async () => {
         console.info(`[Mock] Aprovando Pix automaticamente: ${mockId}`);
         await markPixGatewayPaymentPaid(mockId, { mock: true });
         await markPixVendaPaidByGatewayId(mockId);
       }, 4000);
 
-      // Imagem SVG Base64 de Placeholder (Evita a imagem quebrada)
-      const mockQrBase64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZmlsbD0iIzAwMCI+TU9DSyBRUjwvdGV4dD48L3N2Zz4=";
+      const mockQrBase64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAQMAAABJtVK3AAAABlBMVEX///8AAABVwtN+AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAENJREFUGNNjYMAPhgwogMEBwkxQ5uCAkS0MB2UOEGWCMjsIQ2UOUAWDUD1sYTrkYgZBBmEGQQZDBoQwgwgDUxgwAACK5A1aW9z6WAAAAABJRU5ErkJggg==";
 
       return NextResponse.json({
         paymentCode: "00020101021126580014br.gov.bcb.pix0136mock@pix.com.br52040000530398654041.505802BR5909MOCK TEST6009SAO PAULO62070503***6304FC71",
@@ -95,25 +93,23 @@ export async function POST(request: Request) {
     const idTx = normalized.idTransaction;
 
     if (idTx) {
-      await insertPendingPixVenda({
-        customerName: client.name,
-        email: client.email,
-        phone: client.telefone,
-        amountCents: body.amountCents || Math.round(amount * 100),
-        productSummary: body.productSummary || PRODUCT.name,
-        idTransaction: idTx,
-        codigoRastreio: trackingCode,
-        shippingSummary: body.shippingSummary,
-      });
-
       await insertCheckoutLead({
+        id: leadId,
         name: client.name,
         email: client.email,
         phoneDigits: client.telefone,
         productInterest: body.productSummary || PRODUCT.name,
         status: "em_contato",
-        codigoRastreio: trackingCode,
         cpf: client.document.replace(/\D/g, ""), 
+      });
+      
+      await insertPendingPixVenda({
+        leadId,
+        customerName: client.name,
+        amountCents: body.amountCents || Math.round(amount * 100),
+        productSummary: body.productSummary || PRODUCT.name,
+        idTransaction: idTx,
+        shippingSummary: body.shippingSummary,
       });
     }
 
