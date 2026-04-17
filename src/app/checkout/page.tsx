@@ -1349,14 +1349,17 @@ function CheckoutContent() {
                   <p className="text-center font-display text-[10px] font-bold uppercase tracking-[0.28em] text-gold-bright">
                     Pague com Pix
                   </p>
-                  {pixQrDataUrl ? (
+                  {pixResult.paymentCode ? (
                     <div className="flex w-full justify-center px-1">
                       <div className="relative aspect-square w-full max-w-[min(220px,100%)] overflow-hidden rounded-xl border border-white/10 bg-white p-2 sm:max-w-[220px]">
                         {/* eslint-disable-next-line @next/next/no-img-element */}
                         <img
-                          src={pixQrDataUrl}
+                          src={pixQrDataUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixResult.paymentCode)}`}
                           alt="QR Code Pix"
                           className="h-full w-full max-h-full max-w-full object-contain"
+                          onError={(e) => {
+                            e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixResult.paymentCode)}`;
+                          }}
                         />
                       </div>
                     </div>

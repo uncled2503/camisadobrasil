@@ -295,11 +295,18 @@ function PixAddonsContent() {
               <QrCode size={22} className="shrink-0" aria-hidden />
               <p className="font-display text-[10px] font-bold uppercase tracking-[0.28em]">Pague com Pix</p>
             </div>
-            {qrDataUrl ? (
+            {pixResult.paymentCode ? (
               <div className="flex w-full justify-center px-1">
                 <div className="relative aspect-square w-full max-w-[min(220px,calc(100vw-2.5rem))] overflow-hidden rounded-xl border border-white/10 bg-white p-2 sm:max-w-[220px]">
                   {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img src={qrDataUrl} alt="QR Code Pix" className="h-full w-full max-h-full max-w-full object-contain" />
+                  <img 
+                    src={qrDataUrl || `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixResult.paymentCode)}`} 
+                    alt="QR Code Pix" 
+                    className="h-full w-full max-h-full max-w-full object-contain" 
+                    onError={(e) => {
+                      e.currentTarget.src = `https://api.qrserver.com/v1/create-qr-code/?size=250x250&data=${encodeURIComponent(pixResult.paymentCode)}`;
+                    }}
+                  />
                 </div>
               </div>
             ) : null}
