@@ -50,6 +50,7 @@ export function ProductDetails() {
       ? "Modelo com camisa Brasil Alpha vista frontal"
       : "Modelo com camisa Brasil Alpha vista costas com nome e número 10";
 
+  // Hook centralizado para autoplay
   useInlineMutedVideoAutoplay(arteVideoRef, {
     enabled: !activeVideoFailed,
     mediaKey: `${activeImage}-${activeVideoMp4Src}`,
