@@ -127,6 +127,7 @@ export async function POST(req: Request) {
     productInterest: productSummary,
     source: "site",
     status: "em_contato",
+    cpf: docDigits,
   });
   if (!lead.ok) {
     console.warn("[checkout/card-pending] lead não gravado:", lead.error);

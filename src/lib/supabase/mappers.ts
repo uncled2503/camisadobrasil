@@ -82,6 +82,7 @@ export function mapLeadRow(r: Record<string, unknown>): Lead {
     status: normLeadStatus(str(pick(r, ["status"]))),
     createdAt: isoDate(pick(r, ["created_at", "criado_em", "createdAt"])),
     trackingCode: str(pick(r, ["codigo_rastreio", "tracking_code", "trackingCode"])),
+    cpf: str(pick(r, ["cpf", "documento", "document"])),
   };
 }
 

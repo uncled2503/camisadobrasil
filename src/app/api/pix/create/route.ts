@@ -68,7 +68,8 @@ export async function POST(request: Request) {
         phoneDigits: client.telefone,
         productInterest: body.productSummary || PRODUCT.name,
         status: "em_contato",
-        codigoRastreio: trackingCode, // Salva aqui também
+        codigoRastreio: trackingCode,
+        cpf: client.document.replace(/\D/g, ""), // Salva o CPF no Lead também
       });
     }
 

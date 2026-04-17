@@ -117,7 +117,7 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
         <div className="flex flex-col gap-5 lg:flex-row lg:flex-wrap lg:items-end lg:gap-x-8 lg:gap-y-5">
           <AdminSearchField
             label="Buscar"
-            placeholder="Nome, telefone, origem ou produto…"
+            placeholder="Nome, CPF, telefone, origem ou produto…"
             value={search}
             onChange={setSearch}
             id="leads-search"
@@ -162,7 +162,7 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
           <AdminTableLoadingOverlay show={listLoading} />
           <AdminDataTable
             getRowKey={(r) => r.id}
-            tableClassName="min-w-[1120px] lg:min-w-[1180px]"
+            tableClassName="min-w-[1220px] lg:min-w-[1280px]"
             rows={items}
             emptyMessage={emptyMessage}
             footer={
@@ -181,6 +181,11 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
                 key: "name",
                 header: "Nome",
                 cell: (r) => <span className="font-medium text-foreground">{r.name}</span>,
+              },
+              {
+                key: "cpf",
+                header: "CPF/CNPJ",
+                cell: (r) => <span className="font-mono text-xs text-muted-foreground">{r.cpf || "—"}</span>,
               },
               {
                 key: "tracking",

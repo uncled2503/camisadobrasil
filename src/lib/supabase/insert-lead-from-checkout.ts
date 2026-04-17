@@ -12,7 +12,8 @@ export type InsertCheckoutLeadInput = {
   productInterest: string;
   source?: LeadSource;
   status?: LeadStatus;
-  codigoRastreio?: string; // Novo campo
+  codigoRastreio?: string;
+  cpf?: string; // Novo campo
 };
 
 export async function insertCheckoutLead(
@@ -42,7 +43,8 @@ export async function insertCheckoutLead(
       product_interest: p.productInterest.trim(),
       status,
       created_at: when,
-      codigo_rastreio: p.codigoRastreio, // Gravando rastreio no lead
+      codigo_rastreio: p.codigoRastreio,
+      cpf: p.cpf, // Gravando CPF no lead
     },
     {
       id,
@@ -56,6 +58,7 @@ export async function insertCheckoutLead(
       status,
       criado_em: when,
       codigo_rastreio: p.codigoRastreio,
+      cpf: p.cpf,
     },
   ];
 

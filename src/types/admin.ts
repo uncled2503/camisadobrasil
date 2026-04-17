@@ -27,7 +27,8 @@ export type Lead = {
   productInterest: string;
   status: LeadStatus;
   createdAt: string;
-  trackingCode?: string; // Novo campo
+  trackingCode?: string;
+  cpf?: string; // Novo campo
 };
 
 export type Sale = {
@@ -40,7 +41,7 @@ export type Sale = {
   date: string;
   productName: string;
   paymentMethod: PaymentMethod;
-  trackingCode?: string; // Novo campo
+  trackingCode?: string;
 };
 
 export type Client = {

@@ -38,6 +38,7 @@ export function leadMatchesContactSearch(lead: Lead, rawQuery: string): boolean 
     lead.name,
     lead.email,
     lead.phone,
+    lead.cpf || "", // Buscando também por CPF
     lead.source,
     formatLeadSource(lead.source),
     lead.productInterest,
