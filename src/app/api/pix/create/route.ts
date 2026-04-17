@@ -60,8 +60,8 @@ export async function POST(request: Request) {
         await markPixVendaPaidByGatewayId(mockId);
       }, 4000);
 
-      // Base64 de um QR Code genérico pequeno (em vez do pixel branco)
-      const mockQrBase64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAQMAAABJtVK3AAAABlBMVEX///8AAABVwtN+AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAENJREFUGNNjYMAPhgwogMEBwkxQ5uCAkS0MB2UOEGWCMjsIQ2UOUAWDUD1sYTrkYgZBBmEGQQZDBoQwgwgDUxgwAACK5A1aW9z6WAAAAABJRU5ErkJggg==";
+      // Imagem SVG Base64 de Placeholder (Evita a imagem quebrada)
+      const mockQrBase64 = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHdpZHRoPSIxNTAiIGhlaWdodD0iMTUwIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjZmZmIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJzYW5zLXNlcmlmIiBmb250LXNpemU9IjIwIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBkeT0iLjNlbSIgZmlsbD0iIzAwMCI+TU9DSyBRUjwvdGV4dD48L3N2Zz4=";
 
       return NextResponse.json({
         paymentCode: "00020101021126580014br.gov.bcb.pix0136mock@pix.com.br52040000530398654041.505802BR5909MOCK TEST6009SAO PAULO62070503***6304FC71",
