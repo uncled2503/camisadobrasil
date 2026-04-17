@@ -814,7 +814,7 @@ function CheckoutContent() {
               fill
               className="object-cover object-center"
               priority
-              sizes="(max-width: 768px) 100vw, (max-width: 1200px) 100vw, 1600px"
+              sizes="(max-width: 1024px) 100vw, 1600px"
             />
           </div>
         </div>
@@ -1278,7 +1278,7 @@ function CheckoutContent() {
           <aside className="h-fit min-w-0 w-full max-w-full lg:sticky lg:top-24">
             <div className="glass-dark max-w-full min-w-0 overflow-hidden rounded-[2rem] p-4 sm:p-6 md:p-8">
               <div className="relative mb-6 aspect-square w-full overflow-hidden rounded-2xl border border-white/10 shadow-lg">
-                <Image src="/images/camisa-checkout-display.png" alt="Sua Edição Sagrada" fill className="object-cover" priority />
+                <Image src="/images/camisa-checkout-display.png" alt="Sua Edição Sagrada" fill sizes="(max-width: 1024px) 100vw, 400px" className="object-cover" priority />
               </div>
               <h3 className="mb-6 font-display text-lg font-bold uppercase tracking-tight text-white">Resumo da Compra</h3>
               <div className="mb-8 min-w-0 space-y-4">
