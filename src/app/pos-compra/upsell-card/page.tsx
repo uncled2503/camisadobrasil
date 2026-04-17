@@ -25,7 +25,7 @@ function UpsellCardContent() {
       stepLabel="Etapa 2 de 2 · Oferta especial"
       headline="Adicione o card colecionável da edição"
       subheadline="Receba um card premium exclusivo para acompanhar sua peça."
-      priceDisplay="+ R$ 12,90"
+      priceDisplay="+ R$ 1,00"
       acceptLabel="Sim, quero o card colecionável"
       declineLabel="Não, finalizar sem o card"
       onAccept={() => goProximoPasso(true)}

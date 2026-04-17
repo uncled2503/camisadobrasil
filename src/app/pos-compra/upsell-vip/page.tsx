@@ -14,7 +14,7 @@ export default function UpsellVipPage() {
       stepLabel="Etapa 1 de 2 · Oferta especial"
       headline="Coloque seu pedido na fila VIP"
       subheadline="Receba prioridade máxima de separação e produção."
-      priceDisplay="+ R$ 14,90"
+      priceDisplay="+ R$ 1,00"
       acceptLabel="Sim, quero prioridade VIP"
       declineLabel="Não, continuar pedido normal"
       onAccept={() => {
