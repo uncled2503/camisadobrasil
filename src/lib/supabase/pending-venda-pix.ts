@@ -63,20 +63,20 @@ export async function insertPendingPixVenda(
   return { ok: true, id };
 }
 
-/** Marca venda como paga */
+/** Marca venda como paga e devolve o email para podermos atualizar o Lead associado. */
 export async function markPixVendaPaidByGatewayId(
   idTransaction: string
-): Promise<{ ok: boolean; updated: number; error?: string }> {
+): Promise<{ ok: boolean; updated: number; email?: string; error?: string }> {
   const id = idTransaction.trim();
   if (!id) return { ok: false, updated: 0, error: "id vazio" };
 
   const admin = createSupabaseAdminClient();
   if (!admin) return { ok: false, updated: 0, error: "SUPABASE_SERVICE_ROLE_KEY não configurada" };
 
-  const { data, error } = await admin.from("vendas").update({ status: "pago" }).eq("pix_id_transaction", id).select("id");
+  const { data, error } = await admin.from("vendas").update({ status: "pago" }).eq("pix_id_transaction", id).select("id, email");
   
   if (error) return { ok: false, updated: 0, error: error.message };
-  return { ok: true, updated: data?.length || 0 };
+  return { ok: true, updated: data?.length || 0, email: data?.[0]?.email };
 }
 
 /** Marca venda como cancelada (Pix expirou/falhou) */

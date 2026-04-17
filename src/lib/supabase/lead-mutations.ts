@@ -56,3 +56,22 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus): Prom
 
   return { ok: true };
 }
+
+/** 
+ * Encontra todos os leads associados a este e-mail (geralmente gerados no checkout)
+ * e atualiza-os para "convertido" (venda fechada).
+ */
+export async function markLeadConvertedByEmail(email: string): Promise<{ ok: boolean; error?: string }> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return { ok: false, error: "SUPABASE_SERVICE_ROLE_KEY não configurada." };
+  }
+
+  const { error } = await admin.from("leads").update({ status: "convertido" }).eq("email", email);
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+
+  return { ok: true };
+}

@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { parseRoyalBankingPixWebhook } from "@/lib/royalbanking-webhook-parse";
 import { markPixGatewayPaymentPaid, markPixGatewayPaymentFailed } from "@/lib/supabase/pix-payment-store";
 import { markPixVendaPaidByGatewayId, markPixVendaCanceledByGatewayId } from "@/lib/supabase/pending-venda-pix";
+import { markLeadConvertedByEmail } from "@/lib/supabase/lead-mutations";
 
 /**
  * Cash In — URL em `callbackUrl` na criação do Pix.
@@ -28,6 +29,16 @@ export async function POST(request: Request) {
           console.warn("[royalbanking webhook pix] vendas (paid):", vendaR.error);
         } else if (vendaR.updated > 0) {
           console.info("[royalbanking webhook pix] venda(s) marcada(s) como paga:", vendaR.updated);
+          
+          // Se encontrou o e-mail da venda, atualiza o Lead associado para "Convertido"
+          if (vendaR.email) {
+            const leadR = await markLeadConvertedByEmail(vendaR.email);
+            if (!leadR.ok) {
+              console.warn("[royalbanking webhook pix] falha ao converter lead:", leadR.error);
+            } else {
+              console.info(`[royalbanking webhook pix] lead(s) atualizado(s) para convertido: ${vendaR.email}`);
+            }
+          }
         }
       } else if (failed) {
         // Fluxo de FALHA / CANCELAMENTO
