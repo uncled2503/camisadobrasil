@@ -119,7 +119,8 @@ function PixAddonsContent() {
       const productSummaryAddon =
         parts.length > 0 ? `Adicionais pós-compra · ${parts.join(" · ")}` : "Adicionais pós-compra";
 
-      const res = await fetch("/api/pix/create", {
+      // Faz fetch DIRETO na Supabase Edge Function criada
+      const res = await fetch("https://ulrigywayovxuyiktnlr.supabase.co/functions/v1/pix-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({

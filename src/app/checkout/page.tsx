@@ -612,7 +612,7 @@ function CheckoutContent() {
       }
       if (!pixTrackingAvailable) {
         toast.error(
-          "Confirmação automática indisponível: defina SUPABASE_SERVICE_ROLE_KEY na Vercel e execute docs/supabase-pix-payments.sql no Supabase."
+          "Confirmação automática indisponível: certifique-se de que os dados da gateway estão corretos."
         );
         return;
       }
@@ -674,7 +674,8 @@ function CheckoutContent() {
 
     setPixLoading(true);
     try {
-      const res = await fetch("/api/pix/create", {
+      // Faz fetch DIRETO na Supabase Edge Function criada
+      const res = await fetch("https://ulrigywayovxuyiktnlr.supabase.co/functions/v1/pix-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
@@ -698,7 +699,7 @@ function CheckoutContent() {
       } catch {
         throw new Error(
           res.status >= 500
-            ? `Erro ${res.status} no servidor ao gerar Pix (resposta não JSON). Confirme logs na Vercel e variáveis de ambiente.`
+            ? `Erro ${res.status} no servidor ao gerar Pix. Confirme os logs do Supabase e variáveis.`
             : "Resposta inválida do servidor ao gerar Pix."
         );
       }
@@ -717,8 +718,8 @@ function CheckoutContent() {
         const msg =
           humanized ||
           fromGateway ||
-          (res.status === 401 || res.status === 403
-            ? "Chave da Royal Banking inválida (401). Atualize ROYALBANKING_API_KEY e reinicie o npm run dev."
+          (res.status === 401 || res.status === 403 || res.status === 500
+            ? "Chave de API inválida ou erro interno. Confirme seus Secrets no Supabase."
             : `Erro ${res.status} ao gerar Pix.`);
         throw new Error(msg);
       }
