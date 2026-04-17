@@ -10,6 +10,7 @@ export type PendingPixVendaInput = {
   productSummary: string;
   idTransaction: string;
   shippingSummary?: string;
+  codigoRastreio?: string; // Novo campo
 };
 
 function productLine(p: PendingPixVendaInput): string {
@@ -19,10 +20,6 @@ function productLine(p: PendingPixVendaInput): string {
   return base;
 }
 
-/**
- * Grava pedido Pix como **pendente** em `vendas`, ligado ao `idTransaction` da Royal Banking.
- * Requer coluna `pix_id_transaction` ou `id_transacao_pix` — ver `docs/supabase-vendas-pix.sql`.
- */
 export async function insertPendingPixVenda(
   p: PendingPixVendaInput
 ): Promise<{ ok: true; id: string } | { ok: false; error: string }> {
@@ -30,70 +27,43 @@ export async function insertPendingPixVenda(
   if (!admin) {
     return {
       ok: false,
-      error:
-        "SUPABASE_SERVICE_ROLE_KEY não configurada — não foi possível registar a venda Pix no painel.",
+      error: "SUPABASE_SERVICE_ROLE_KEY não configurada.",
     };
   }
 
   const tx = p.idTransaction.trim();
-  if (!tx) {
-    return { ok: false, error: "idTransaction vazio." };
-  }
+  if (!tx) return { ok: false, error: "idTransaction vazio." };
 
   const line = productLine(p);
   const when = new Date().toISOString();
   const id = crypto.randomUUID();
 
-  const attempts: Record<string, unknown>[] = [
-    {
-      id,
-      customer: p.customerName,
-      email: p.email,
-      telefone: p.phone,
-      amount_cents: p.amountCents,
-      status: "pendente",
-      payment_method: "pix",
-      product_name: line,
-      date: when,
-      pix_id_transaction: tx,
-    },
-    {
-      id,
-      nome: p.customerName,
-      email: p.email,
-      telefone: p.phone,
-      valor_centavos: p.amountCents,
-      status: "pendente",
-      metodo_pagamento: "pix",
-      produto: line,
-      criado_em: when,
-      id_transacao_pix: tx,
-    },
-  ];
+  // Tenta inserir com o campo de rastreio
+  const row = {
+    id,
+    customer: p.customerName,
+    email: p.email,
+    telefone: p.phone,
+    amount_cents: p.amountCents,
+    status: "pendente",
+    payment_method: "pix",
+    product_name: line,
+    date: when,
+    pix_id_transaction: tx,
+    codigo_rastreio: p.codigoRastreio, // Gravando o código
+  };
 
-  let lastMsg = "";
-  for (const row of attempts) {
-    const { data, error } = await admin.from("vendas").insert(row).select("id").maybeSingle();
-    if (!error) {
-      const rid =
-        data && typeof data === "object" && data !== null && "id" in data
-          ? String((data as { id: unknown }).id)
-          : id;
-      return { ok: true, id: rid };
-    }
-    lastMsg = error.message;
-    if (!/column|Could not find|schema cache|42703/i.test(lastMsg)) {
-      return { ok: false, error: lastMsg };
-    }
+  const { error } = await admin.from("vendas").insert(row).select("id").maybeSingle();
+  
+  if (error) {
+    console.error("[pending-venda-pix] erro ao inserir:", error.message);
+    return { ok: false, error: error.message };
   }
 
-  return { ok: false, error: lastMsg || "Não foi possível gravar a venda Pix em vendas." };
+  return { ok: true, id };
 }
 
-/**
- * Marca venda como paga quando o webhook Cash In confirma o Pix.
- * Idempotente: várias chamadas com o mesmo id são seguras.
- */
+/** Marca venda como paga */
 export async function markPixVendaPaidByGatewayId(
   idTransaction: string
 ): Promise<{ ok: boolean; updated: number; error?: string }> {
@@ -101,27 +71,10 @@ export async function markPixVendaPaidByGatewayId(
   if (!id) return { ok: false, updated: 0, error: "id vazio" };
 
   const admin = createSupabaseAdminClient();
-  if (!admin) {
-    return { ok: false, updated: 0, error: "SUPABASE_SERVICE_ROLE_KEY não configurada" };
-  }
+  if (!admin) return { ok: false, updated: 0, error: "SUPABASE_SERVICE_ROLE_KEY não configurada" };
 
-  const patches: Record<string, unknown>[] = [{ status: "pago" }, { status_pagamento: "pago" }];
-  const eqCols = ["pix_id_transaction", "id_transacao_pix"];
-
-  for (const patch of patches) {
-    for (const col of eqCols) {
-      const { data, error } = await admin.from("vendas").update(patch).eq(col, id).select("id");
-      if (error) {
-        if (/column|Could not find|schema cache|42703/i.test(error.message)) {
-          continue;
-        }
-        return { ok: false, updated: 0, error: error.message };
-      }
-      if (data && data.length > 0) {
-        return { ok: true, updated: data.length };
-      }
-    }
-  }
-
-  return { ok: true, updated: 0 };
+  const { data, error } = await admin.from("vendas").update({ status: "pago" }).eq("pix_id_transaction", id).select("id");
+  
+  if (error) return { ok: false, updated: 0, error: error.message };
+  return { ok: true, updated: data?.length || 0 };
 }
