@@ -60,9 +60,12 @@ export async function POST(request: Request) {
         await markPixVendaPaidByGatewayId(mockId);
       }, 4000);
 
+      // Base64 de um QR Code genérico pequeno (em vez do pixel branco)
+      const mockQrBase64 = "iVBORw0KGgoAAAANSUhEUgAAACAAAAAgAQMAAABJtVK3AAAABlBMVEX///8AAABVwtN+AAAAAXRSTlMAQObYZgAAAAlwSFlzAAAOxAAADsQBlSsOGwAAAENJREFUGNNjYMAPhgwogMEBwkxQ5uCAkS0MB2UOEGWCMjsIQ2UOUAWDUD1sYTrkYgZBBmEGQQZDBoQwgwgDUxgwAACK5A1aW9z6WAAAAABJRU5ErkJggg==";
+
       return NextResponse.json({
         paymentCode: "00020101021126580014br.gov.bcb.pix0136mock@pix.com.br52040000530398654041.505802BR5909MOCK TEST6009SAO PAULO62070503***6304FC71",
-        paymentCodeBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+        paymentCodeBase64: mockQrBase64,
         idTransaction: mockId,
         trackingCode
       });
