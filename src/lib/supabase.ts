@@ -2,23 +2,20 @@ import { createClient, type SupabaseClient } from "@supabase/supabase-js";
 
 let client: SupabaseClient | null = null;
 
+const SUPABASE_URL = "https://ulrigywayovxuyiktnlr.supabase.co";
+const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVscmlneXdheW92eHV5aWt0bmxyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU4NDA5NzcsImV4cCI6MjA5MTQxNjk3N30._rf_5EQ69yPVBeXtlJs-56Nd3y3zpUsdu-L9TDM_un0";
+
 function resolveClient(): SupabaseClient {
   if (client) return client;
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL?.trim();
-  const anon = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY?.trim();
-  if (!url || !anon) {
-    throw new Error(
-      "Faltam NEXT_PUBLIC_SUPABASE_URL e/ou NEXT_PUBLIC_SUPABASE_ANON_KEY. " +
-        "Use .env.local em desenvolvimento ou Vercel → Project → Settings → Environment Variables em produção."
-    );
-  }
-  client = createClient(url, anon);
+  
+  client = createClient(SUPABASE_URL, SUPABASE_ANON_KEY, {
+    auth: { persistSession: false }
+  });
   return client;
 }
 
 /**
- * Cliente anónimo (lazy). O import não chama `createClient` — evita falha no `next build`
- * quando as envs ainda não existem na Vercel. Só acede depois de `isSupabasePublicEnvConfigured()`.
+ * Cliente anónimo (lazy) para server components.
  */
 export const supabase = new Proxy({} as SupabaseClient, {
   get(_target, prop) {

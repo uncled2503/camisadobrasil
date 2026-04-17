@@ -23,6 +23,8 @@ export default function AdminLoginPage() {
         <Auth
           supabaseClient={supabase}
           providers={[]}
+          view="sign_in"
+          showLinks={false}
           appearance={{
             theme: ThemeSupa,
             variables: {
@@ -52,14 +54,6 @@ export default function AdminLoginPage() {
                 password_label: 'Senha',
                 button_label: 'Entrar',
                 loading_button_label: 'A entrar...',
-                link_text: 'Já tem uma conta? Entre',
-              },
-              sign_up: {
-                email_label: 'E-mail',
-                password_label: 'Crie uma senha',
-                button_label: 'Criar conta',
-                loading_button_label: 'A criar conta...',
-                link_text: 'Não tem uma conta? Registe-se',
               }
             }
           }}
