@@ -41,6 +41,39 @@ export async function markPixGatewayPaymentPaid(
   return { ok: true };
 }
 
+export async function markPixGatewayPaymentFailed(
+  idTransaction: string,
+  rawPayload: unknown
+): Promise<{ ok: boolean; error?: string }> {
+  const id = idTransaction.trim();
+  if (!id) return { ok: false, error: "id vazio" };
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return { ok: false, error: "SUPABASE_SERVICE_ROLE_KEY não configurada" };
+  }
+
+  const rawJson =
+    rawPayload !== null && typeof rawPayload === "object"
+      ? (rawPayload as Record<string, unknown>)
+      : { value: rawPayload };
+
+  const { error } = await admin.from(TABLE).upsert(
+    {
+      id_transaction: id,
+      status: "failed",
+      raw_payload: rawJson,
+      updated_at: new Date().toISOString(),
+    },
+    { onConflict: "id_transaction" }
+  );
+
+  if (error) {
+    return { ok: false, error: error.message };
+  }
+  return { ok: true };
+}
+
 export async function isPixGatewayPaymentPaid(idTransaction: string): Promise<boolean> {
   const id = idTransaction.trim();
   if (!id) return false;

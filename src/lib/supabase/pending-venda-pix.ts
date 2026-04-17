@@ -78,3 +78,19 @@ export async function markPixVendaPaidByGatewayId(
   if (error) return { ok: false, updated: 0, error: error.message };
   return { ok: true, updated: data?.length || 0 };
 }
+
+/** Marca venda como cancelada (Pix expirou/falhou) */
+export async function markPixVendaCanceledByGatewayId(
+  idTransaction: string
+): Promise<{ ok: boolean; updated: number; error?: string }> {
+  const id = idTransaction.trim();
+  if (!id) return { ok: false, updated: 0, error: "id vazio" };
+
+  const admin = createSupabaseAdminClient();
+  if (!admin) return { ok: false, updated: 0, error: "SUPABASE_SERVICE_ROLE_KEY não configurada" };
+
+  const { data, error } = await admin.from("vendas").update({ status: "cancelado" }).eq("pix_id_transaction", id).select("id");
+  
+  if (error) return { ok: false, updated: 0, error: error.message };
+  return { ok: true, updated: data?.length || 0 };
+}

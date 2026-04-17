@@ -1,6 +1,7 @@
 /**
  * Interpreta webhooks Royal Banking (Cash In / Cash Out).
  * Cash In pago: `status` = `paid` (ex.: { idTransaction, status: "paid" }).
+ * Cash In falhou: `status` = `failed` ou `providerStatus` = `CANCELLED`.
  * Cash Out: `SaquePago`, `SaqueFalhou` — não marcam depósito Pix no checkout.
  */
 
@@ -17,6 +18,15 @@ const PAID_HINTS = [
   "completed",
 ];
 
+const FAILED_HINTS = [
+  "failed",
+  "fail",
+  "cancel",
+  "falhou",
+  "erro",
+  "rejeit",
+];
+
 function norm(s: unknown): string {
   return String(s ?? "")
     .trim()
@@ -26,6 +36,11 @@ function norm(s: unknown): string {
 function looksPaidStatus(s: string): boolean {
   if (!s) return false;
   return PAID_HINTS.some((h) => s.includes(h));
+}
+
+function looksFailedStatus(s: string): boolean {
+  if (!s) return false;
+  return FAILED_HINTS.some((h) => s.includes(h));
 }
 
 /** Cash Out / eventos que não são confirmação de depósito (Cash In). */
@@ -44,6 +59,8 @@ function pickTransactionId(r: Record<string, unknown>): string | undefined {
     r.id_transaction ??
     r.transactionId ??
     r.transaction_id ??
+    r.paymentId ??
+    r.payment_id ??
     r.id ??
     r.txId ??
     r.tx_id;
@@ -66,17 +83,25 @@ function deepFindId(o: unknown, depth = 0): string | undefined {
   return undefined;
 }
 
-/**
- * Indica se o webhook é confirmação de **Pix Cash In** pago (depósito), não saque.
- */
+/** Indica se o webhook é confirmação de Pix Cash In pago. */
 function isPixCashInPaid(r: Record<string, unknown>): boolean {
-  const status = norm(r.status ?? r.payment_status ?? r.paymentStatus ?? r.state);
+  const status = norm(r.status ?? r.payment_status ?? r.paymentStatus ?? r.state ?? r.providerStatus);
   if (isCashOutOrNonDepositEvent(status)) return false;
   if (status === "paid") return true;
   if (r.paid === true && !isCashOutOrNonDepositEvent(status)) return true;
   const ev = norm(r.event);
   if (ev === "payment.confirmed" || (ev.includes("paid") && !ev.includes("saque"))) return true;
   if (looksPaidStatus(status)) return true;
+  return false;
+}
+
+/** Indica se o webhook é confirmação de Pix Cash In falhado/cancelado. */
+function isPixCashInFailed(r: Record<string, unknown>): boolean {
+  const status = norm(r.status ?? r.payment_status ?? r.paymentStatus ?? r.state ?? r.providerStatus);
+  if (isCashOutOrNonDepositEvent(status)) return false;
+  if (looksFailedStatus(status)) return true;
+  const ev = norm(r.event);
+  if (looksFailedStatus(ev)) return true;
   return false;
 }
 
@@ -90,15 +115,27 @@ function deepCashInPaid(o: unknown, depth = 0): boolean {
   return false;
 }
 
-export function parseRoyalBankingPixWebhook(payload: unknown): { idTransaction?: string; paid: boolean } {
+function deepCashInFailed(o: unknown, depth = 0): boolean {
+  if (depth > 6 || o == null || typeof o !== "object") return false;
+  const r = o as Record<string, unknown>;
+  if (isPixCashInFailed(r)) return true;
+  for (const v of Object.values(r)) {
+    if (typeof v === "object" && v !== null && deepCashInFailed(v, depth + 1)) return true;
+  }
+  return false;
+}
+
+export function parseRoyalBankingPixWebhook(payload: unknown): { idTransaction?: string; paid: boolean; failed: boolean } {
   if (payload == null || typeof payload !== "object") {
-    return { paid: false };
+    return { paid: false, failed: false };
   }
   const root = payload as Record<string, unknown>;
   const idTransaction = deepFindId(payload);
   const paid = deepCashInPaid(payload);
-  if (!paid && idTransaction && isCashOutOrNonDepositEvent(norm(root.status))) {
-    return { idTransaction, paid: false };
+  const failed = deepCashInFailed(payload);
+  
+  if (!paid && !failed && idTransaction && isCashOutOrNonDepositEvent(norm(root.status))) {
+    return { idTransaction, paid: false, failed: false };
   }
-  return { idTransaction, paid };
+  return { idTransaction, paid, failed };
 }
