@@ -7,7 +7,8 @@ import {
 } from "@/lib/pix-gateway-response";
 import { PRODUCT } from "@/lib/product";
 import { insertCheckoutLead } from "@/lib/supabase/insert-lead-from-checkout";
-import { insertPendingPixVenda } from "@/lib/supabase/pending-venda-pix";
+import { insertPendingPixVenda, markPixVendaPaidByGatewayId } from "@/lib/supabase/pending-venda-pix";
+import { markPixGatewayPaymentPaid } from "@/lib/supabase/pix-payment-store";
 import { generateMockTrackingCode } from "@/lib/tracking-utils";
 
 const GATEWAY_URL = "https://api.royalbanking.com.br/v1/gateway/";
@@ -17,8 +18,6 @@ export async function POST(request: Request) {
     const apiKey = process.env.ROYALBANKING_API_KEY;
     const callbackUrl = process.env.ROYALBANKING_PIX_CALLBACK_URL || process.env.VERCEL_URL;
 
-    if (!apiKey) return NextResponse.json({ error: "API Key não configurada." }, { status: 503 });
-
     const body = await request.json();
     const { amount, client } = body;
 
@@ -27,6 +26,48 @@ export async function POST(request: Request) {
     }
 
     const trackingCode = generateMockTrackingCode();
+
+    // ====== MODO MOCK PARA TESTES SEM API KEY ======
+    if (!apiKey) {
+      console.warn("[API Pix] ROYALBANKING_API_KEY não encontrada. Usando MODO MOCK.");
+      const mockId = `mock_${crypto.randomUUID().split("-")[0]}`;
+      
+      await insertPendingPixVenda({
+        customerName: client.name,
+        email: client.email,
+        phone: client.telefone,
+        amountCents: body.amountCents || Math.round(amount * 100),
+        productSummary: body.productSummary || PRODUCT.name,
+        idTransaction: mockId,
+        codigoRastreio: trackingCode,
+        shippingSummary: body.shippingSummary,
+      });
+
+      await insertCheckoutLead({
+        name: client.name,
+        email: client.email,
+        phoneDigits: client.telefone,
+        productInterest: body.productSummary || PRODUCT.name,
+        status: "em_contato",
+        codigoRastreio: trackingCode,
+        cpf: client.document.replace(/\D/g, ""),
+      });
+
+      // Aprova o pagamento automaticamente 4 segundos depois para simular o Webhook
+      setTimeout(async () => {
+        console.info(`[Mock] Aprovando Pix automaticamente: ${mockId}`);
+        await markPixGatewayPaymentPaid(mockId, { mock: true });
+        await markPixVendaPaidByGatewayId(mockId);
+      }, 4000);
+
+      return NextResponse.json({
+        paymentCode: "00020101021126580014br.gov.bcb.pix0136mock@pix.com.br52040000530398654041.505802BR5909MOCK TEST6009SAO PAULO62070503***6304FC71",
+        paymentCodeBase64: "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAQAAAC1HAwCAAAAC0lEQVR42mNkYAAAAAYAAjCB0C8AAAAASUVORK5CYII=",
+        idTransaction: mockId,
+        trackingCode
+      });
+    }
+    // ===============================================
 
     const upstream = await fetch(GATEWAY_URL, {
       method: "POST",
@@ -69,7 +110,7 @@ export async function POST(request: Request) {
         productInterest: body.productSummary || PRODUCT.name,
         status: "em_contato",
         codigoRastreio: trackingCode,
-        cpf: client.document.replace(/\D/g, ""), // Salva o CPF no Lead também
+        cpf: client.document.replace(/\D/g, ""), 
       });
     }
 
