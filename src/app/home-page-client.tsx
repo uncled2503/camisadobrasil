@@ -28,13 +28,8 @@ export function HomePageClient() {
 
   const openCart = (quantity: number) => {
     setCartQty(quantity);
-    setCartSizes((prev) => {
-      const next: Size[] = [];
-      for (let i = 0; i < quantity; i++) {
-        next.push(prev[i] ?? selectedSize);
-      }
-      return next;
-    });
+    // Agora forçamos o carrinho a usar o tamanho selecionado na página para todas as unidades
+    setCartSizes(Array(quantity).fill(selectedSize));
     setCartOpen(true);
   };
 
