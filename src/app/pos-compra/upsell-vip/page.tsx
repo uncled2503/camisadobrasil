@@ -5,16 +5,22 @@ import Image from "next/image";
 import { Sparkles } from "lucide-react";
 import { PostPurchaseUpsellShell } from "@/components/pos-compra/post-purchase-upsell-shell";
 import { POS_COMPRA } from "@/lib/pos-compra-routes";
+import { UPSELL_VIP_CENTS } from "@/lib/pos-compra-upsell-pricing";
 
 export default function UpsellVipPage() {
   const router = useRouter();
+
+  const formattedPrice = new Intl.NumberFormat("pt-BR", { 
+    style: "currency", 
+    currency: "BRL" 
+  }).format(UPSELL_VIP_CENTS / 100);
 
   return (
     <PostPurchaseUpsellShell
       stepLabel="Etapa 1 de 2 · Oferta especial"
       headline="Coloque seu pedido na fila VIP"
       subheadline="Receba prioridade máxima de separação e produção."
-      priceDisplay="+ R$ 1,00"
+      priceDisplay={`+ ${formattedPrice}`}
       acceptLabel="Sim, quero prioridade VIP"
       declineLabel="Não, continuar pedido normal"
       onAccept={() => {

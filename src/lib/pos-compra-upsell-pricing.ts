@@ -1,6 +1,6 @@
 /** Valores dos upsells pós-compra (centavos BRL), alinhados às cópias das telas. */
-export const UPSELL_VIP_CENTS = 100;
-export const UPSELL_CARD_CENTS = 100;
+export const UPSELL_VIP_CENTS = 1990;
+export const UPSELL_CARD_CENTS = 2990;
 
 export function computeUpsellAddonCents(vipAccepted: boolean, cardAccepted: boolean): number {
   let total = 0;

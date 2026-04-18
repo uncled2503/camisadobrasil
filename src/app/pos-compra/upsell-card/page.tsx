@@ -6,6 +6,7 @@ import Image from "next/image";
 import { Gem } from "lucide-react";
 import { PostPurchaseUpsellShell } from "@/components/pos-compra/post-purchase-upsell-shell";
 import { posCompraObrigadoQuery, posCompraPixAddonsQuery } from "@/lib/pos-compra-routes";
+import { UPSELL_CARD_CENTS } from "@/lib/pos-compra-upsell-pricing";
 
 function UpsellCardContent() {
   const router = useRouter();
@@ -20,12 +21,17 @@ function UpsellCardContent() {
     router.push(posCompraObrigadoQuery(false, false));
   };
 
+  const formattedPrice = new Intl.NumberFormat("pt-BR", { 
+    style: "currency", 
+    currency: "BRL" 
+  }).format(UPSELL_CARD_CENTS / 100);
+
   return (
     <PostPurchaseUpsellShell
       stepLabel="Etapa 2 de 2 · Oferta especial"
       headline="Adicione o card colecionável da edição"
       subheadline="Receba um card premium exclusivo para acompanhar sua peça."
-      priceDisplay="+ R$ 1,00"
+      priceDisplay={`+ ${formattedPrice}`}
       acceptLabel="Sim, quero o card colecionável"
       declineLabel="Não, finalizar sem o card"
       onAccept={() => goProximoPasso(true)}
