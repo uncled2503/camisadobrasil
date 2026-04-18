@@ -1,2 +1,5 @@
-ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS codigo_rastreio TEXT;
-ALTER TABLE public.vendas ADD COLUMN IF NOT EXISTS codigo_rastreio TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS cep TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS endereco TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS numero TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS complemento TEXT;
+ALTER TABLE public.leads ADD COLUMN IF NOT EXISTS bairro TEXT;

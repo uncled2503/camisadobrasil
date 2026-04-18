@@ -28,7 +28,12 @@ export type Lead = {
   status: LeadStatus;
   createdAt: string;
   trackingCode?: string;
-  cpf?: string; // Novo campo
+  cpf?: string;
+  cep?: string;
+  address?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
 };
 
 export type Sale = {

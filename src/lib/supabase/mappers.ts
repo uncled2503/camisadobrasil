@@ -72,6 +72,11 @@ export function mapLeadRow(r: Record<string, unknown>): Lead {
     createdAt: isoDate(pick(r, ["created_at", "criado_em"])),
     trackingCode: str(pick(r, ["codigo_rastreio"])),
     cpf: str(pick(r, ["cpf", "documento"])),
+    cep: str(pick(r, ["cep", "zipcode"])),
+    address: str(pick(r, ["endereco", "address", "logradouro"])),
+    number: str(pick(r, ["numero", "number"])),
+    complement: str(pick(r, ["complemento", "complement"])),
+    neighborhood: str(pick(r, ["bairro", "neighborhood"])),
   };
 }
 

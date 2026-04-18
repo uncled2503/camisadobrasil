@@ -14,6 +14,11 @@ export type InsertCheckoutLeadInput = {
   source?: LeadSource;
   status?: LeadStatus;
   cpf?: string;
+  cep?: string;
+  address?: string;
+  number?: string;
+  complement?: string;
+  neighborhood?: string;
 };
 
 export async function insertCheckoutLead(
@@ -26,7 +31,6 @@ export async function insertCheckoutLead(
 
   const id = p.id || crypto.randomUUID();
   
-  // Mapeamento EXATO para as colunas da tabela "leads"
   const row = {
     id,
     nome: p.name.trim(),
@@ -38,6 +42,11 @@ export async function insertCheckoutLead(
     produto_interesse: p.productInterest.trim(),
     status: p.status ?? "em_contato",
     cpf: p.cpf,
+    cep: p.cep,
+    endereco: p.address,
+    numero: p.number,
+    complemento: p.complement,
+    bairro: p.neighborhood,
   };
 
   const { error } = await admin.from("leads").insert(row);

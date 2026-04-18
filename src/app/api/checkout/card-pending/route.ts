@@ -93,6 +93,11 @@ export async function POST(req: Request) {
     source: "site",
     status: "em_contato",
     cpf: docDigits,
+    cep: formData.cep.replace(/\D/g, ""),
+    address: formData.endereco.trim(),
+    number: formData.numero.trim(),
+    complement: formData.complemento.trim(),
+    neighborhood: formData.bairro.trim(),
   });
 
   if (!lead.ok) {

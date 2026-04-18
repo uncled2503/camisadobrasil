@@ -83,7 +83,14 @@ serve(async (req) => {
         produto_interesse: productSummary || "Camisa do Brasil",
         status: "em_contato",
         cpf: client.document.replace(/\D/g, ""),
-        codigo_rastreio: trackingCode
+        codigo_rastreio: trackingCode,
+        cidade: client.address?.cidade,
+        estado: client.address?.estado,
+        cep: client.address?.cep,
+        endereco: client.address?.endereco,
+        numero: client.address?.numero,
+        complemento: client.address?.complemento,
+        bairro: client.address?.bairro,
       });
       if (leadError) console.error("[pix-create] Erro ao inserir Lead:", leadError);
 

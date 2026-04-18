@@ -674,7 +674,7 @@ function CheckoutContent() {
 
     setPixLoading(true);
     try {
-      // Faz fetch DIRETO na Supabase Edge Function criada
+      // Faz fetch DIRETO na Supabase Edge Function criada passando o endereço completo no objeto address
       const res = await fetch("https://ulrigywayovxuyiktnlr.supabase.co/functions/v1/pix-create", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -688,6 +688,15 @@ function CheckoutContent() {
             document: docDigits,
             telefone: phoneDigits,
             email,
+            address: {
+              cep: formData.cep.replace(/\D/g, ""),
+              endereco: formData.endereco.trim(),
+              numero: formData.numero.trim(),
+              complemento: formData.complemento.trim(),
+              bairro: formData.bairro.trim(),
+              cidade: formData.cidade.trim(),
+              estado: estadoChk,
+            }
           },
         }),
       });
