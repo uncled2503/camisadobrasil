@@ -826,7 +826,7 @@ function CheckoutContent() {
         aria-label="Finalize sua compra"
       >
         <div className="relative mx-auto max-w-[1600px]">
-          <div className="relative aspect-[5/3] w-full sm:aspect-[2.2/1] md:aspect-[2.5/1] md:max-h-[min(52vh,520px)] md:min-h-[220px]">
+          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[3.5/1] lg:aspect-[4.5/1] max-h-[320px]">
             <Image
               src="/images/checkout-hero-banner.png"
               alt="Finalize sua compra — Alpha Brasil. Sua peça exclusiva está reservada por tempo limitado. Compra segura e premium."
