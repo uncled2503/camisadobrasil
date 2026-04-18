@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Funções utilitárias para interpretar o webhook isoladas para segurança
 function norm(s: any): string {
   return String(s ?? "").trim().toLowerCase();
 }
@@ -20,7 +19,7 @@ function pickTransactionId(r: any): string | undefined {
 function isPaid(status: string, event: string) {
   const s = norm(status);
   const e = norm(event);
-  if (s.includes('saque')) return false; // Ignora Cash-Out
+  if (s.includes('saque')) return false; 
   if (s === 'paid' || s.includes('pago') || s.includes('approved') || s.includes('success')) return true;
   if (e === 'payment.confirmed' || (e.includes('paid') && !e.includes('saque'))) return true;
   return false;
@@ -59,27 +58,27 @@ serve(async (req) => {
       if (paid) {
         console.log(`[pix-webhook] Marcando tx ${idTransaction} como PAGO`);
         
-        // Atualiza a tabela de logs do gateway
-        await supabase.from("pix_gateway_payments").upsert({
+        const { error: logErr } = await supabase.from("pix_gateway_payments").upsert({
           id_transaction: idTransaction,
           status: "paid",
           raw_payload: payload,
           updated_at: new Date().toISOString(),
         }, { onConflict: "id_transaction" });
+        if (logErr) console.error("[pix-webhook] Erro logs:", logErr);
 
-        // Atualiza a venda
-        const { data: vendaData } = await supabase
+        const { data: vendaData, error: vendaErr } = await supabase
           .from("vendas")
           .update({ status_pagamento: "pago" })
           .eq("pedido_codigo", idTransaction)
           .select("id, lead_id");
+        if (vendaErr) console.error("[pix-webhook] Erro Vendas:", vendaErr);
 
-        // Atualiza o lead para convertido
         if (vendaData && vendaData.length > 0 && vendaData[0].lead_id) {
-           await supabase
+           const { error: leadErr } = await supabase
             .from("leads")
             .update({ status: "convertido" })
             .eq("id", vendaData[0].lead_id);
+           if (leadErr) console.error("[pix-webhook] Erro Leads:", leadErr);
         }
         
       } else if (failed) {
@@ -96,6 +95,8 @@ serve(async (req) => {
           .from("vendas")
           .update({ status_pagamento: "cancelado" })
           .eq("pedido_codigo", idTransaction);
+      } else {
+        console.log(`[pix-webhook] Evento ignorado (não é pago nem falhado): status=${status}, event=${event}`);
       }
     }
 

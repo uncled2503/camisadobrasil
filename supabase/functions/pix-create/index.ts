@@ -6,7 +6,6 @@ const corsHeaders = {
   'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
 }
 
-// Gera o código de rastreio
 function generateMockTrackingCode() {
   const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
   const num4 = Math.floor(1000 + Math.random() * 9000).toString();
@@ -16,7 +15,6 @@ function generateMockTrackingCode() {
 }
 
 serve(async (req) => {
-  // Trata o preflight CORS que os navegadores enviam
   if (req.method === 'OPTIONS') {
     return new Response(null, { headers: corsHeaders })
   }
@@ -26,17 +24,14 @@ serve(async (req) => {
     const body = await req.json();
     const { amount, amountCents, productSummary, shippingSummary, client } = body;
 
-    // Busca a chave diretamente dos SECRETS do Supabase
     const apiKey = Deno.env.get("ROYALBANKING_API_KEY");
     if (!apiKey) {
       console.error("[pix-create] ROYALBANKING_API_KEY não encontrada nos secrets.");
-      return new Response(JSON.stringify({ error: "API Key da gateway não configurada nos Secrets do Supabase." }), { 
-        status: 500, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+      return new Response(JSON.stringify({ error: "API Key não configurada." }), { 
+        status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       });
     }
 
-    // O Webhook agora aponta para a Edge Function de webhook que vamos criar
     const callbackUrl = "https://ulrigywayovxuyiktnlr.supabase.co/functions/v1/pix-webhook";
     const trackingCode = generateMockTrackingCode();
     const leadId = crypto.randomUUID();
@@ -63,12 +58,10 @@ serve(async (req) => {
     if (!upstream.ok) {
       console.error("[pix-create] Erro na gateway:", data);
       return new Response(JSON.stringify(data), { 
-        status: upstream.status, 
-        headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
+        status: upstream.status, headers: { ...corsHeaders, 'Content-Type': 'application/json' } 
       });
     }
 
-    // Extrai dados da resposta
     const paymentCode = String(data.paymentCode ?? data.payment_code ?? data.copyPaste ?? data.emv ?? "").trim();
     const rawB64 = data.paymentCodeBase64 ?? data.payment_code_base64 ?? data.qrCodeBase64 ?? data.qrcode;
     const paymentCodeBase64 = rawB64 == null ? "" : String(rawB64).trim().replace(/\s/g, "");
@@ -78,13 +71,11 @@ serve(async (req) => {
     if (idTransaction) {
       console.log(`[pix-create] Inserindo dados no banco (tx: ${idTransaction})...`);
       
-      // As variáveis abaixo existem de forma nativa e automática em todas as Edge Functions
       const supabaseUrl = Deno.env.get("SUPABASE_URL")!;
       const supabaseKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
       const supabase = createClient(supabaseUrl, supabaseKey);
 
-      // Insere Lead
-      await supabase.from("leads").insert({
+      const { error: leadError } = await supabase.from("leads").insert({
         id: leadId,
         nome: client.name.trim(),
         email: client.email.trim().toLowerCase(),
@@ -94,12 +85,12 @@ serve(async (req) => {
         cpf: client.document.replace(/\D/g, ""),
         codigo_rastreio: trackingCode
       });
+      if (leadError) console.error("[pix-create] Erro ao inserir Lead:", leadError);
 
-      // Insere Venda Pendente
       const base = `${productSummary} · Pix`;
       const line = shippingSummary ? `${base} · Entrega: ${shippingSummary}` : base;
       
-      await supabase.from("vendas").insert({
+      const { error: vendaError } = await supabase.from("vendas").insert({
         id: crypto.randomUUID(),
         lead_id: leadId,
         cliente_nome: client.name,
@@ -108,6 +99,7 @@ serve(async (req) => {
         status_pagamento: "pendente",
         pedido_codigo: idTransaction,
       });
+      if (vendaError) console.error("[pix-create] Erro ao inserir Venda:", vendaError);
     }
 
     console.log("[pix-create] Sucesso!");
@@ -118,8 +110,7 @@ serve(async (req) => {
   } catch (err) {
     console.error("[pix-create] Erro interno:", err);
     return new Response(JSON.stringify({ error: "Erro interno ao gerar Pix" }), {
-      status: 500,
-      headers: { ...corsHeaders, 'Content-Type': 'application/json' }
+      status: 500, headers: { ...corsHeaders, 'Content-Type': 'application/json' }
     });
   }
 })

@@ -5,15 +5,10 @@ import { useEffect, useRef, useState } from "react";
 const POLL_MS = 2000;
 
 export type PixPaymentConfirmation = {
-  /** True quando o webhook gravou `paid` no Supabase para este id. */
   confirmed: boolean;
-  /** False se falta SUPABASE_SERVICE_ROLE_KEY ou tabela — confirmação automática indisponível. */
   trackingAvailable: boolean;
 };
 
-/**
- * Consulta `/api/pix/payment-status` até o Pix ser marcado como pago no servidor.
- */
 export function usePixPaymentConfirmation(transactionId: string | undefined): PixPaymentConfirmation {
   const [confirmed, setConfirmed] = useState(false);
   const [trackingAvailable, setTrackingAvailable] = useState(true);
@@ -40,8 +35,9 @@ export function usePixPaymentConfirmation(transactionId: string | undefined): Pi
 
     const poll = async () => {
       try {
+        // Chamada direta à Edge Function do Supabase
         const res = await fetch(
-          `/api/pix/payment-status?transactionId=${encodeURIComponent(transactionId.trim())}`,
+          `https://ulrigywayovxuyiktnlr.supabase.co/functions/v1/pix-status?transactionId=${encodeURIComponent(transactionId.trim())}`,
           { cache: "no-store" }
         );
         const j = (await res.json()) as { paid?: boolean; trackingAvailable?: boolean };
