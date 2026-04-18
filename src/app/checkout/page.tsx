@@ -67,24 +67,6 @@ const maskPhone = (value: string) => {
     .replace(/(-\d{4})\d+?$/, "$1");
 };
 
-/** Só dígitos, blocos de 4 — o número completo não é enviado ao servidor, apenas os últimos 4. */
-const maskCardNumber = (value: string) => {
-  const d = value.replace(/\D/g, "").slice(0, 19);
-  const parts: string[] = [];
-  for (let i = 0; i < d.length; i += 4) {
-    parts.push(d.slice(i, i + 4));
-  }
-  return parts.join(" ");
-};
-
-const maskCardExpiry = (value: string) => {
-  const d = value.replace(/\D/g, "").slice(0, 4);
-  if (d.length <= 2) return d;
-  return `${d.slice(0, 2)}/${d.slice(2)}`;
-};
-
-const maskCVV = (value: string) => value.replace(/\D/g, "").slice(0, 4);
-
 const maskCEP = (value: string) => {
   const d = value.replace(/\D/g, "").slice(0, 8);
   if (d.length <= 5) return d;
@@ -234,10 +216,6 @@ function CheckoutContent() {
     confirmEmail: "",
     phone: "",
     cpf: "",
-    cardNumber: "",
-    cardExpiry: "",
-    cardCVV: "",
-    cardName: "",
     cep: "",
     endereco: "",
     numero: "",
@@ -250,7 +228,6 @@ function CheckoutContent() {
   const [cepLookupBusy, setCepLookupBusy] = useState(false);
 
   const [pixLoading, setPixLoading] = useState(false);
-  const [cardSubmitting, setCardSubmitting] = useState(false);
   const [pixResult, setPixResult] = useState<{
     paymentCode: string;
     paymentCodeBase64: string;
@@ -386,7 +363,7 @@ function CheckoutContent() {
   const pixMissingTransactionId = pixAwaitingConfirm && !(pixResult?.idTransaction ?? "").trim();
   const pixContinueDisabled =
     pixLoading ||
-    cardSubmitting ||
+    paymentMethod === "card" ||
     (pixAwaitingConfirm &&
       (pixMissingTransactionId || !pixTrackingAvailable || !pixPaymentConfirmed));
 
@@ -475,6 +452,11 @@ function CheckoutContent() {
   };
 
   const handleFinalize = async () => {
+    if (paymentMethod === "card") {
+      toast.error("Pagamento por Cartão indisponível no momento! Por favor, selecione PIX.");
+      return;
+    }
+
     if (personalizationMaster) {
       const paidLines = shirtPaidPersonalization.filter(Boolean).length;
       if (paidLines === 0) {
@@ -512,99 +494,6 @@ function CheckoutContent() {
     const shipErr = validateShippingAddress(formData);
     if (shipErr) {
       toast.error(shipErr);
-      return;
-    }
-
-    if (paymentMethod === "card") {
-      const name = formData.name.trim();
-      const email = formData.email.trim();
-      const phoneDigits = formData.phone.replace(/\D/g, "");
-      const docDigits = formData.cpf.replace(/\D/g, "");
-
-      if (!name || !email || !formData.phone.trim() || !formData.cpf.trim()) {
-        toast.error("Preencha nome, e-mail, WhatsApp e CPF/CNPJ antes de finalizar com cartão.");
-        return;
-      }
-      if (email !== formData.confirmEmail.trim()) {
-        toast.error("Os e-mails não coincidem.");
-        return;
-      }
-      if (docDigits.length !== 11 && docDigits.length !== 14) {
-        toast.error("Informe um CPF (11 dígitos) ou CNPJ (14 dígitos) válido.");
-        return;
-      }
-      if (phoneDigits.length < 10) {
-        toast.error("Informe um telefone com DDD.");
-        return;
-      }
-
-      const cardDigits = formData.cardNumber.replace(/\D/g, "");
-      const last4 = cardDigits.slice(-4);
-      if (cardDigits.length < 13) {
-        toast.error("Informe o número do cartão completo (mín. 13 dígitos).");
-        return;
-      }
-      if (!/^\d{4}$/.test(last4)) {
-        toast.error("Não foi possível validar os últimos dígitos do cartão.");
-        return;
-      }
-      if (!/^\d{2}\/\d{2}$/.test(formData.cardExpiry.trim())) {
-        toast.error("Informe a validade no formato MM/AA.");
-        return;
-      }
-      const cvvDigits = formData.cardCVV.replace(/\D/g, "");
-      if (cvvDigits.length < 3) {
-        toast.error("Informe o CVV (3 ou 4 dígitos).");
-        return;
-      }
-      if (!formData.cardName.trim()) {
-        toast.error("Informe o nome impresso no cartão.");
-        return;
-      }
-
-      setCardSubmitting(true);
-      try {
-        const res = await fetch("/api/checkout/card-pending", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            name,
-            email,
-            confirmEmail: formData.confirmEmail.trim().toLowerCase(),
-            phone: formData.phone,
-            cpf: formData.cpf,
-            cardLast4: last4,
-            cardExpiry: formData.cardExpiry.trim(),
-            cardholderName: formData.cardName.trim(),
-            amountCents: finalTotalCents,
-            quantity: pricing.quantity,
-            cep: formData.cep,
-            endereco: formData.endereco.trim(),
-            numero: formData.numero.trim(),
-            complemento: formData.complemento.trim(),
-            bairro: formData.bairro.trim(),
-            cidade: formData.cidade.trim(),
-            estado: formData.estado.replace(/\s/g, "").toUpperCase(),
-          }),
-        });
-        const raw = (await res.json()) as { error?: string, trackingCode?: string };
-        if (!res.ok) {
-          throw new Error(typeof raw.error === "string" ? raw.error : `Erro ${res.status} ao registrar o pedido.`);
-        }
-        
-        if (raw.trackingCode) {
-          sessionStorage.setItem("alpha_tracking_code", raw.trackingCode);
-        }
-        
-        toast.success("Pedido registrado! Só guardamos os últimos 4 dígitos do cartão — a equipa verá no painel.");
-        savePosCompraPixClient(buildPosCompraClientPayload());
-        router.push(POS_COMPRA.upsellVip);
-      } catch (e) {
-        const msg = e instanceof Error ? e.message : "Não foi possível registrar o pedido.";
-        toast.error(msg);
-      } finally {
-        setCardSubmitting(false);
-      }
       return;
     }
 
@@ -826,7 +715,7 @@ function CheckoutContent() {
         aria-label="Finalize sua compra"
       >
         <div className="relative mx-auto max-w-[1600px]">
-          <div className="relative w-full aspect-[16/9] sm:aspect-[21/9] md:aspect-[3.5/1] lg:aspect-[4.5/1] max-h-[320px]">
+          <div className="relative aspect-[5/3] w-full sm:aspect-[2.2/1] md:aspect-[2.5/1] md:max-h-[min(52vh,520px)] md:min-h-[220px]">
             <Image
               src="/images/checkout-hero-banner.png"
               alt="Finalize sua compra — Alpha Brasil. Sua peça exclusiva está reservada por tempo limitado. Compra segura e premium."
@@ -981,38 +870,17 @@ function CheckoutContent() {
                   </p>
                 </div>
               ) : (
-                <div className="grid gap-4">
-                  <InputGroup
-                    label="Número do Cartão"
-                    placeholder="0000 0000 0000 0000"
-                    value={formData.cardNumber}
-                    onChange={(e) => handleInputChange("cardNumber", e.target.value, maskCardNumber)}
-                    maxLength={23}
-                  />
-                  <div className="grid grid-cols-2 gap-4">
-                    <InputGroup
-                      label="Validade"
-                      placeholder="MM/AA"
-                      value={formData.cardExpiry}
-                      onChange={(e) => handleInputChange("cardExpiry", e.target.value, maskCardExpiry)}
-                      maxLength={5}
-                    />
-                    <InputGroup
-                      label="CVV"
-                      placeholder="123"
-                      type="password"
-                      autoComplete="cc-csc"
-                      value={formData.cardCVV}
-                      onChange={(e) => handleInputChange("cardCVV", e.target.value, maskCVV)}
-                      maxLength={4}
-                    />
+                <div className="space-y-4 rounded-2xl bg-red-500/[0.05] p-6 border border-red-500/20 text-center">
+                  <div className="flex items-center justify-center gap-2 text-red-400 mb-4">
+                    <CreditCard size={20} />
+                    <p className="text-sm font-bold uppercase tracking-widest">Cartão de Crédito</p>
                   </div>
-                  <InputGroup
-                    label="Nome no Cartão"
-                    placeholder="Como no cartão"
-                    value={formData.cardName}
-                    onChange={(e) => handleInputChange("cardName", e.target.value)}
-                  />
+                  <p className="text-base text-red-200 leading-relaxed font-semibold">
+                    Pagamento por Cartão indisponível no momento!
+                  </p>
+                  <p className="text-sm text-red-200/80 leading-relaxed">
+                    Por favor, utilize o PIX para finalizar a sua compra.
+                  </p>
                 </div>
               )}
             </section>
