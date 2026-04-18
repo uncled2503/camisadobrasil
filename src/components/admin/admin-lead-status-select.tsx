@@ -36,7 +36,7 @@ export function AdminLeadStatusSelect({ leadId, value, disabled, onChange }: Adm
       style={{ backgroundImage: chevron }}
     >
       {OPTIONS.map((opt) => (
-        <option key={opt.value} value={opt.value}>
+        <option key={opt.value} value={opt.value} className="bg-[#060910] text-foreground">
           {opt.label}
         </option>
       ))}

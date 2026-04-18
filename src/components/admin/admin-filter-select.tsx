@@ -46,7 +46,7 @@ export function AdminFilterSelect<T extends string>({
         style={{ backgroundImage: chevron }}
       >
         {options.map((opt) => (
-          <option key={opt.value} value={opt.value}>
+          <option key={opt.value} value={opt.value} className="bg-[#060910] text-foreground">
             {opt.label}
           </option>
         ))}
