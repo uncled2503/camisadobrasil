@@ -2,9 +2,9 @@
 
 import { useCallback, useDeferredValue, useEffect, useMemo, useState, useTransition } from "react";
 import toast from "react-hot-toast";
-import { updateLeadStatusAction } from "@/app/admin/(dashboard)/leads/actions";
+import { Trash2, Loader2 } from "lucide-react";
+import { updateLeadStatusAction, deleteLeadAction } from "@/app/admin/(dashboard)/leads/actions";
 import { AdminDataTable } from "@/components/admin/admin-data-table";
-import { AdminLeadQuickContact } from "@/components/admin/admin-lead-quick-contact";
 import { AdminLeadStatusSelect } from "@/components/admin/admin-lead-status-select";
 import { AdminSearchField } from "@/components/admin/admin-search-field";
 import { AdminFilterSelect, type AdminSelectOption } from "@/components/admin/admin-filter-select";
@@ -42,6 +42,7 @@ type AdminLeadsViewProps = {
 export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
   const [localLeads, setLocalLeads] = useState<Lead[]>(leads);
   const [updatingLeadId, setUpdatingLeadId] = useState<string | null>(null);
+  const [deletingLeadId, setDeletingLeadId] = useState<string | null>(null);
 
   const [search, setSearch] = useState("");
   const deferredSearch = useDeferredValue(search);
@@ -76,6 +77,23 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
       setLocalLeads((list) => list.map((l) => (l.id === leadId ? { ...l, status: previous! } : l)));
       toast.error(res.error);
     }
+  }, []);
+
+  const handleDeleteLead = useCallback(async (leadId: string) => {
+    if (!window.confirm("Tem certeza que deseja excluir este lead e todas as vendas associadas? Esta ação não pode ser desfeita.")) {
+      return;
+    }
+    
+    setDeletingLeadId(leadId);
+    const res = await deleteLeadAction(leadId);
+    
+    if (res.ok) {
+      toast.success("Lead e vendas excluídos com sucesso.");
+      setLocalLeads((list) => list.filter((l) => l.id !== leadId));
+    } else {
+      toast.error(res.error || "Erro ao excluir o lead.");
+    }
+    setDeletingLeadId(null);
   }, []);
 
   const filters: LeadsListFilters = useMemo(
@@ -162,7 +180,7 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
           <AdminTableLoadingOverlay show={listLoading} />
           <AdminDataTable
             getRowKey={(r) => r.id}
-            tableClassName="min-w-[1220px] lg:min-w-[1280px]"
+            tableClassName="min-w-[1280px] lg:min-w-[1320px]"
             rows={items}
             emptyMessage={emptyMessage}
             footer={
@@ -224,6 +242,22 @@ export function AdminLeadsView({ leads }: AdminLeadsViewProps) {
                 header: "Data",
                 className: "whitespace-nowrap",
                 cell: (r) => <span className="text-muted-foreground">{formatDateTime(r.createdAt)}</span>,
+              },
+              {
+                key: "actions",
+                header: "",
+                className: "w-12 text-right",
+                cell: (r) => (
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteLead(r.id)}
+                    disabled={deletingLeadId === r.id}
+                    className="inline-flex h-8 w-8 items-center justify-center rounded-lg text-muted-foreground transition-colors hover:bg-red-500/10 hover:text-red-400 disabled:opacity-50"
+                    title="Excluir lead"
+                  >
+                    {deletingLeadId === r.id ? <Loader2 className="h-4 w-4 animate-spin" /> : <Trash2 className="h-4 w-4" />}
+                  </button>
+                ),
               },
             ]}
           />

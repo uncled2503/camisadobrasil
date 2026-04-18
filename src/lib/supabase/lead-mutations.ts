@@ -42,3 +42,32 @@ export async function markLeadConvertedById(id: string): Promise<{ ok: boolean; 
 
   return { ok: true };
 }
+
+/**
+ * Exclui um lead e todas as suas vendas associadas (via lead_id).
+ */
+export async function deleteLeadAndRelatedData(leadId: string): Promise<{ ok: boolean; error?: string }> {
+  const admin = createSupabaseAdminClient();
+  if (!admin) {
+    return { ok: false, error: "SUPABASE_SERVICE_ROLE_KEY não configurada." };
+  }
+
+  const id = leadId.trim();
+  if (!id) return { ok: false, error: "ID inválido." };
+
+  // 1. Excluir vendas vinculadas a este lead
+  const { error: vendasError } = await admin.from("vendas").delete().eq("lead_id", id);
+  if (vendasError) {
+    console.error("[deleteLead] Erro ao excluir vendas:", vendasError.message);
+    return { ok: false, error: "Erro ao excluir vendas vinculadas a este lead." };
+  }
+
+  // 2. Excluir o lead
+  const { error: leadError } = await admin.from("leads").delete().eq("id", id);
+  if (leadError) {
+    console.error("[deleteLead] Erro ao excluir lead:", leadError.message);
+    return { ok: false, error: leadError.message };
+  }
+
+  return { ok: true };
+}
