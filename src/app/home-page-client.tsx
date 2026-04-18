@@ -1,23 +1,29 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
 import { ShoppingBag } from "lucide-react";
 import { HeroSection } from "@/components/landing/hero-section";
-import { ProductDetails } from "@/components/landing/product-details";
-import { PromoBundle } from "@/components/landing/promo-bundle";
-import { PremiumGallery } from "@/components/landing/premium-gallery";
-import { SocialProof } from "@/components/landing/social-proof";
-import { GuaranteeSection } from "@/components/landing/guarantee-section";
-import { SizeChart } from "@/components/landing/size-chart";
-import { FaqSection } from "@/components/landing/faq-section";
-import { FeedbackSection } from "@/components/landing/feedback-section";
-import { FinalCta } from "@/components/landing/final-cta";
-import { StickyBuyBar } from "@/components/landing/sticky-buy-bar";
 import { SiteNavDesktop, SiteNavMobile } from "@/components/landing/site-nav";
 import { AnnouncementBar } from "@/components/landing/announcement-bar";
-import { SalesNotifications } from "@/components/landing/sales-notifications";
-import { LandingCartDialog } from "@/components/landing/landing-cart-dialog";
 import type { Size } from "@/lib/types";
+
+// Carregamento dinâmico otimizado (Lazy Loading)
+// Componentes fora do ecrã inicial não vão pesar no carregamento da página
+const ProductDetails = dynamic(() => import("@/components/landing/product-details").then(m => m.ProductDetails), { ssr: true });
+const PromoBundle = dynamic(() => import("@/components/landing/promo-bundle").then(m => m.PromoBundle), { ssr: true });
+const PremiumGallery = dynamic(() => import("@/components/landing/premium-gallery").then(m => m.PremiumGallery), { ssr: true });
+const SocialProof = dynamic(() => import("@/components/landing/social-proof").then(m => m.SocialProof), { ssr: true });
+const GuaranteeSection = dynamic(() => import("@/components/landing/guarantee-section").then(m => m.GuaranteeSection), { ssr: true });
+const SizeChart = dynamic(() => import("@/components/landing/size-chart").then(m => m.SizeChart), { ssr: true });
+const FaqSection = dynamic(() => import("@/components/landing/faq-section").then(m => m.FaqSection), { ssr: true });
+const FeedbackSection = dynamic(() => import("@/components/landing/feedback-section").then(m => m.FeedbackSection), { ssr: true });
+const FinalCta = dynamic(() => import("@/components/landing/final-cta").then(m => m.FinalCta), { ssr: true });
+
+// UI Dinâmica e Modais (sem server-side rendering para poupar recursos de servidor)
+const StickyBuyBar = dynamic(() => import("@/components/landing/sticky-buy-bar").then(m => m.StickyBuyBar), { ssr: false });
+const SalesNotifications = dynamic(() => import("@/components/landing/sales-notifications").then(m => m.SalesNotifications), { ssr: false });
+const LandingCartDialog = dynamic(() => import("@/components/landing/landing-cart-dialog").then(m => m.LandingCartDialog), { ssr: false });
 
 export function HomePageClient() {
   const [selectedSize, setSelectedSize] = useState<Size>("M");
@@ -28,7 +34,6 @@ export function HomePageClient() {
 
   const openCart = (quantity: number) => {
     setCartQty(quantity);
-    // Agora forçamos o carrinho a usar o tamanho selecionado na página para todas as unidades
     setCartSizes(Array(quantity).fill(selectedSize));
     setCartOpen(true);
   };

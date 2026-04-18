@@ -50,7 +50,7 @@ export function ProductDetails() {
       ? "Modelo com camisa Brasil Alpha vista frontal"
       : "Modelo com camisa Brasil Alpha vista costas com nome e número 10";
 
-  // Hook centralizado para autoplay
+  // Hook centralizado para autoplay apenas quando visível
   useInlineMutedVideoAutoplay(arteVideoRef, {
     enabled: !activeVideoFailed,
     mediaKey: `${activeImage}-${activeVideoMp4Src}`,
@@ -139,8 +139,7 @@ export function ProductDetails() {
                       muted
                       loop
                       playsInline
-                      autoPlay
-                      preload="auto"
+                      preload="metadata"
                       poster={activeImageSrc}
                       aria-label={activeAlt}
                       controls={false}

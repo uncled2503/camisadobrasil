@@ -8,8 +8,9 @@ type Options = {
 };
 
 /**
- * Safari/iOS: reforça muted/inline e várias tentativas de `play()` (metadata,
- * canplay, viewport, visibilidade).
+ * Motor otimizado de autoplay para mobile/desktop.
+ * Só reproduz o vídeo quando este está visível no ecrã e PAUSA imediatamente
+ * quando sai do ecrã para poupar GPU, bateria e largura de banda.
  */
 export function useInlineMutedVideoAutoplay(
   videoRef: RefObject<HTMLVideoElement | null>,
@@ -20,7 +21,7 @@ export function useInlineMutedVideoAutoplay(
     const v = videoRef.current;
     if (!v) return;
 
-    // Força propriedades essenciais para autoplay mobile
+    // Força propriedades essenciais para autoplay mobile sem som
     v.muted = true;
     v.defaultMuted = true;
     v.volume = 0;
@@ -29,41 +30,54 @@ export function useInlineMutedVideoAutoplay(
     v.setAttribute("webkit-playsinline", "true");
     v.setAttribute("muted", "");
 
-    const attempt = () => {
+    let isVisible = false;
+
+    const attemptPlay = () => {
+      if (!isVisible) return;
       const playPromise = v.play();
       if (playPromise !== undefined) {
         playPromise.catch(() => {
-          // Se falhou (ex: Low Power Mode), tentamos novamente no próximo evento de interação
-          // ou quando o vídeo estiver pronto.
+          // Ignora erros de interrupção ou restrições de power-saving
         });
       }
     };
 
-    // Tenta mal monta
-    attempt();
+    const attemptPause = () => {
+      if (!v.paused) {
+        v.pause();
+      }
+    };
 
-    // Tenta quando carregar metadados e quando puder tocar
-    const onMeta = () => attempt();
-    const onCanPlay = () => attempt();
+    const onMeta = () => attemptPlay();
+    const onCanPlay = () => attemptPlay();
     
     v.addEventListener("loadedmetadata", onMeta);
     v.addEventListener("canplay", onCanPlay);
-    // Em alguns casos de rede lenta, o vídeo pode suspender
     v.addEventListener("suspend", onCanPlay);
 
-    // Intersection Observer para tocar quando entrar no ecrã (economiza bateria e garante play)
+    // Intersection Observer de alta precisão
     const io = new IntersectionObserver(
       (entries) => {
-        if (entries.some((e) => e.isIntersecting && e.intersectionRatio > 0.05)) {
-          attempt();
-        }
+        entries.forEach((e) => {
+          if (e.isIntersecting) {
+            isVisible = true;
+            attemptPlay();
+          } else {
+            isVisible = false;
+            attemptPause();
+          }
+        });
       },
-      { threshold: [0, 0.05, 0.1] }
+      { threshold: 0.01 } // Deteta entrada/saída imediatamente
     );
     io.observe(v);
 
     const onVis = () => {
-      if (document.visibilityState === "visible") attempt();
+      if (document.visibilityState === "visible") {
+        attemptPlay();
+      } else {
+        attemptPause();
+      }
     };
     document.addEventListener("visibilitychange", onVis);
 
