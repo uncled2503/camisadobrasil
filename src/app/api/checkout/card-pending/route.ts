@@ -3,6 +3,7 @@ import { NextResponse } from "next/server";
 import { PRODUCT } from "@/lib/product";
 import { insertCheckoutLead } from "@/lib/supabase/insert-lead-from-checkout";
 import { insertPendingCardVenda } from "@/lib/supabase/pending-venda-card";
+import { generateMockTrackingCode } from "@/lib/tracking-utils";
 
 const FORBIDDEN_BODY_KEYS = new Set(
   ["cvv", "cardcvv", "card_cvv", "cvc", "cardnumber", "card_number", "pan", "full_card", "numero_cartao"].map((k) =>
@@ -81,6 +82,7 @@ export async function POST(req: Request) {
 
   const productSummary = `${PRODUCT.name} (${quantity} un.)`;
   const leadId = crypto.randomUUID();
+  const trackingCode = generateMockTrackingCode();
 
   const lead = await insertCheckoutLead({
     id: leadId,
@@ -93,11 +95,12 @@ export async function POST(req: Request) {
     source: "site",
     status: "em_contato",
     cpf: docDigits,
-    cep: formData.cep.replace(/\D/g, ""),
-    address: formData.endereco.trim(),
-    number: formData.numero.trim(),
-    complement: formData.complemento.trim(),
-    neighborhood: formData.bairro.trim(),
+    cep,
+    address: endereco,
+    number: numero,
+    complement: complemento,
+    neighborhood: bairro,
+    trackingCode,
   });
 
   if (!lead.ok) {
@@ -116,5 +119,5 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: result.error }, { status: 502 });
   }
 
-  return NextResponse.json({ ok: true, id: result.id });
+  return NextResponse.json({ ok: true, id: result.id, trackingCode });
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useMemo } from "react";
+import { Suspense, useEffect, useState } from "react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -14,10 +14,22 @@ function ObrigadoContent() {
   const vip = searchParams.get("vip") === "1";
   const card = searchParams.get("card") === "1";
   
-  // Gera um código de rastreio para o teste (em produção isto viria do backend)
-  const trackingCode = useMemo(() => generateMockTrackingCode(), []);
+  const [trackingCode, setTrackingCode] = useState("");
+
+  useEffect(() => {
+    // Lê o código guardado durante o checkout
+    const savedCode = sessionStorage.getItem("alpha_tracking_code");
+    if (savedCode) {
+      setTrackingCode(savedCode);
+    } else {
+      // Fallback apenas de segurança (se a página for acedida diretamente sem checkout)
+      const newCode = generateMockTrackingCode();
+      setTrackingCode(newCode);
+    }
+  }, []);
   
   const copyTracking = () => {
+    if (!trackingCode) return;
     navigator.clipboard.writeText(trackingCode);
     toast.success("Código de rastreio copiado!");
   };
@@ -67,7 +79,9 @@ function ObrigadoContent() {
 
             <div className="flex flex-col gap-3">
               <div className="flex items-center justify-between rounded-xl bg-black/40 border border-white/10 px-4 py-3">
-                <span className="font-mono text-sm font-bold text-white tracking-wider">{trackingCode}</span>
+                <span className="font-mono text-sm font-bold text-white tracking-wider">
+                  {trackingCode || "..."}
+                </span>
                 <button 
                   onClick={copyTracking}
                   className="text-gold hover:text-gold-bright transition-colors p-1"
@@ -77,13 +91,15 @@ function ObrigadoContent() {
                 </button>
               </div>
 
-              <Link 
-                href={`/rastreio?code=${trackingCode}`}
-                className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gold/10 border border-gold/30 text-[11px] font-bold uppercase tracking-widest text-gold-bright hover:bg-gold/20 transition-all"
-              >
-                Acompanhar pedido agora
-                <ExternalLink size={14} />
-              </Link>
+              {trackingCode && (
+                <Link 
+                  href={`/rastreio?code=${trackingCode}`}
+                  className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gold/10 border border-gold/30 text-[11px] font-bold uppercase tracking-widest text-gold-bright hover:bg-gold/20 transition-all"
+                >
+                  Acompanhar pedido agora
+                  <ExternalLink size={14} />
+                </Link>
+              )}
             </div>
             
             <p className="mt-4 text-[10px] text-center text-muted-foreground/60 italic">

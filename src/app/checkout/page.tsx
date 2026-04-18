@@ -587,10 +587,15 @@ function CheckoutContent() {
             estado: formData.estado.replace(/\s/g, "").toUpperCase(),
           }),
         });
-        const raw = (await res.json()) as { error?: string };
+        const raw = (await res.json()) as { error?: string, trackingCode?: string };
         if (!res.ok) {
           throw new Error(typeof raw.error === "string" ? raw.error : `Erro ${res.status} ao registrar o pedido.`);
         }
+        
+        if (raw.trackingCode) {
+          sessionStorage.setItem("alpha_tracking_code", raw.trackingCode);
+        }
+        
         toast.success("Pedido registrado! Só guardamos os últimos 4 dígitos do cartão — a equipa verá no painel.");
         savePosCompraPixClient(buildPosCompraClientPayload());
         router.push(POS_COMPRA.upsellVip);
@@ -735,6 +740,10 @@ function CheckoutContent() {
 
       if (!data.paymentCode) {
         throw new Error("Gateway não retornou o código Pix.");
+      }
+
+      if (raw.trackingCode) {
+        sessionStorage.setItem("alpha_tracking_code", raw.trackingCode as string);
       }
 
       setPixResult({

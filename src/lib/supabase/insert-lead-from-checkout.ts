@@ -19,6 +19,7 @@ export type InsertCheckoutLeadInput = {
   number?: string;
   complement?: string;
   neighborhood?: string;
+  trackingCode?: string;
 };
 
 export async function insertCheckoutLead(
@@ -47,6 +48,7 @@ export async function insertCheckoutLead(
     numero: p.number,
     complemento: p.complement,
     bairro: p.neighborhood,
+    codigo_rastreio: p.trackingCode,
   };
 
   const { error } = await admin.from("leads").insert(row);
