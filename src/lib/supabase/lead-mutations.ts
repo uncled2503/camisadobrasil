@@ -18,7 +18,7 @@ export async function updateLeadStatus(leadId: string, status: LeadStatus): Prom
 
   const { data, error } = await client.from("leads").update({ status }).eq("id", id).select("id").maybeSingle();
 
-  if (error) return { ok: false, error: error.message };
+  if (error) return { ok: false, error: `Erro no Supabase: ${error.message}` };
   if (!data) return { ok: false, error: "Lead não encontrado." };
 
   return { ok: true };
@@ -49,7 +49,7 @@ export async function markLeadConvertedById(id: string): Promise<{ ok: boolean; 
 export async function deleteLeadAndRelatedData(leadId: string): Promise<{ ok: boolean; error?: string }> {
   const admin = createSupabaseAdminClient();
   if (!admin) {
-    return { ok: false, error: "SUPABASE_SERVICE_ROLE_KEY não configurada." };
+    return { ok: false, error: "SUPABASE_SERVICE_ROLE_KEY não configurada no servidor." };
   }
 
   const id = leadId.trim();
@@ -57,16 +57,24 @@ export async function deleteLeadAndRelatedData(leadId: string): Promise<{ ok: bo
 
   // 1. Excluir vendas vinculadas a este lead
   const { error: vendasError } = await admin.from("vendas").delete().eq("lead_id", id);
+  
   if (vendasError) {
     console.error("[deleteLead] Erro ao excluir vendas:", vendasError.message);
-    return { ok: false, error: "Erro ao excluir vendas vinculadas a este lead." };
+    
+    // Tratamento mais claro para IDs antigos/mockados incompatíveis com o formato UUID
+    if (vendasError.message.includes("invalid input syntax for type uuid")) {
+      return { ok: false, error: "Este é um lead de demonstração (ID inválido) e não pode ser excluído do Supabase atual." };
+    }
+    
+    return { ok: false, error: `Erro (Vendas): ${vendasError.message}` };
   }
 
   // 2. Excluir o lead
   const { error: leadError } = await admin.from("leads").delete().eq("id", id);
+  
   if (leadError) {
     console.error("[deleteLead] Erro ao excluir lead:", leadError.message);
-    return { ok: false, error: leadError.message };
+    return { ok: false, error: `Erro (Leads): ${leadError.message}` };
   }
 
   return { ok: true };
