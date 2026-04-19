@@ -15,9 +15,9 @@ export function createSupabaseAdminClient(): SupabaseClient | null {
     key = key.slice(1, -1).trim();
   }
 
-  // Verifica se a chave parece um JWT válido (tem de começar por 'ey')
-  if (!key || !key.startsWith("ey")) {
-    console.error("[Supabase Admin] SUPABASE_SERVICE_ROLE_KEY ausente ou contém um valor falso/inválido.");
+  // Verifica se a chave existe (removida a restrição 'ey' devido ao novo formato de chaves do Supabase)
+  if (!key) {
+    console.error("[Supabase Admin] SUPABASE_SERVICE_ROLE_KEY ausente ou vazia.");
     return null; 
   }
 
