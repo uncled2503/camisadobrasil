@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import { DM_Sans, Syne } from "next/font/google";
+import Script from "next/script";
 import { AmbientBackground } from "@/components/landing/ambient-background";
 import { PRODUCT } from "@/lib/product";
 import { getSiteBaseUrl } from "@/lib/site-url";
@@ -59,9 +60,34 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="pt-BR" className="dark">
+      <head>
+        <Script id="meta-pixel" strategy="afterInteractive">
+          {`
+            !function(f,b,e,v,n,t,s)
+            {if(f.fbq)return;n=f.fbq=function(){n.callMethod?
+            n.callMethod.apply(n,arguments):n.queue.push(arguments)};
+            if(!f._fbq)f._fbq=n;n.push=n;n.loaded=!0;n.version='2.0';
+            n.queue=[];t=b.createElement(e);t.async=!0;
+            t.src=v;s=b.getElementsByTagName(e)[0];
+            s.parentNode.insertBefore(t,s)}(window, document,'script',
+            'https://connect.facebook.net/en_US/fbevents.js');
+            fbq('init', '1603071560994242');
+            fbq('track', 'PageView');
+          `}
+        </Script>
+      </head>
       <body
         className={`${sans.variable} ${display.variable} font-sans min-h-[100dvh] bg-transparent text-foreground antialiased`}
       >
+        <noscript>
+          <img
+            height="1"
+            width="1"
+            style={{ display: "none" }}
+            src="https://www.facebook.com/tr?id=1603071560994242&ev=PageView&noscript=1"
+            alt=""
+          />
+        </noscript>
         <Providers>
           <AmbientBackground />
           <div className="relative z-10 flex min-h-[100dvh] flex-col">{children}</div>
