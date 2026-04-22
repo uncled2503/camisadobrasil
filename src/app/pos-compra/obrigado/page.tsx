@@ -16,6 +16,13 @@ function ObrigadoContent() {
   
   const [trackingCode, setTrackingCode] = useState("");
 
+  // Meta Pixel - Purchase Event
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+      (window as any).fbq('track', 'Purchase', { currency: 'BRL' });
+    }
+  }, []);
+
   useEffect(() => {
     // Lê o código guardado durante o checkout
     const savedCode = sessionStorage.getItem("alpha_tracking_code");

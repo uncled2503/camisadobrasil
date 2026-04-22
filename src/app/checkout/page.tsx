@@ -228,6 +228,7 @@ function CheckoutContent() {
   const [cepLookupBusy, setCepLookupBusy] = useState(false);
 
   const [pixLoading, setPixLoading] = useState(false);
+  const [cardSubmitting, setCardSubmitting] = useState(false);
   const [pixResult, setPixResult] = useState<{
     paymentCode: string;
     paymentCodeBase64: string;
@@ -358,6 +359,18 @@ function CheckoutContent() {
   const retention = useRetentionDiscountOnTotal(pricing.baseTotalCents);
   const finalTotalCents = pricing.baseTotalCents - retention.discountCents;
   const retentionBannerLeft = useRetentionBannerCountdown(retention.untilMs);
+
+  // Meta Pixel - InitiateCheckout
+  useEffect(() => {
+    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+      (window as any).fbq('track', 'InitiateCheckout', {
+        value: finalTotalCents / 100,
+        currency: 'BRL',
+        num_items: quantity
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const pixAwaitingConfirm = paymentMethod === "pix" && pixResult != null;
   const pixMissingTransactionId = pixAwaitingConfirm && !(pixResult?.idTransaction ?? "").trim();
