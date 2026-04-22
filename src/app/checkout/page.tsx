@@ -360,18 +360,6 @@ function CheckoutContent() {
   const finalTotalCents = pricing.baseTotalCents - retention.discountCents;
   const retentionBannerLeft = useRetentionBannerCountdown(retention.untilMs);
 
-  // Meta Pixel - InitiateCheckout
-  useEffect(() => {
-    if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
-      (window as any).fbq('track', 'InitiateCheckout', {
-        value: finalTotalCents / 100,
-        currency: 'BRL',
-        num_items: quantity
-      });
-    }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
-
   const pixAwaitingConfirm = paymentMethod === "pix" && pixResult != null;
   const pixMissingTransactionId = pixAwaitingConfirm && !(pixResult?.idTransaction ?? "").trim();
   const pixContinueDisabled =
@@ -655,6 +643,15 @@ function CheckoutContent() {
       });
       savePosCompraPixClient(buildPosCompraClientPayload());
       toast.success("Pix gerado! Escaneie o QR ou copie o código.");
+
+      // Dispara o InitiateCheckout apenas após o Pix ser gerado com sucesso
+      if (typeof window !== "undefined" && typeof (window as any).fbq === "function") {
+        (window as any).fbq('track', 'InitiateCheckout', {
+          value: finalTotalCents / 100,
+          currency: 'BRL',
+          num_items: quantity
+        });
+      }
     } catch (e) {
       const msg = e instanceof Error ? e.message : "Não foi possível gerar o Pix.";
       toast.error(msg);
