@@ -157,7 +157,7 @@ export function AdminSettingsView({ supabaseEnvConfigured = false, initialSettin
               placeholder="https://..."
               required
             />
-            <p className="mt-1.5 text-xs text-muted-foreground">URL para a qual o cliente é direcionado na página de obrigado ao clicar em "Acompanhar pedido".</p>
+            <p className="mt-1.5 text-xs text-muted-foreground">URL para a qual o cliente é direcionado na página de obrigado ao clicar em &quot;Acompanhar pedido&quot;.</p>
           </div>
           <div>
             <AdminSettingsFieldLabel htmlFor="cfg-store-email">E-mail de contato</AdminSettingsFieldLabel>

@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useMemo, useEffect, useRef, Suspense } from "react";
+import React, { useState, useMemo, useEffect, useRef, Suspense, useCallback } from "react";
 import { motion } from "framer-motion";
 import Image from "next/image";
 import Link from "next/link";
@@ -378,7 +378,7 @@ function CheckoutContent() {
     setFormData((prev) => ({ ...prev, [field]: maskFn ? maskFn(value) : value }));
   };
 
-  const buildPosCompraClientPayload = () => ({
+  const buildPosCompraClientPayload = useCallback(() => ({
     name: formData.name.trim(),
     email: formData.email.trim().toLowerCase(),
     telefone: formData.phone.replace(/\D/g, ""),
@@ -390,7 +390,7 @@ function CheckoutContent() {
     bairro: formData.bairro.trim(),
     cidade: formData.cidade.trim(),
     estado: formData.estado.replace(/\s/g, "").toUpperCase(),
-  });
+  }), [formData]);
 
   const pixAutoRedirectDoneRef = useRef(false);
   useEffect(() => {
@@ -414,17 +414,7 @@ function CheckoutContent() {
     pixTrackingAvailable,
     pixPaymentConfirmed,
     router,
-    formData.name,
-    formData.email,
-    formData.phone,
-    formData.cpf,
-    formData.cep,
-    formData.endereco,
-    formData.numero,
-    formData.complemento,
-    formData.bairro,
-    formData.cidade,
-    formData.estado,
+    buildPosCompraClientPayload,
   ]);
 
   const lookupCepDigits = async (digits: string) => {

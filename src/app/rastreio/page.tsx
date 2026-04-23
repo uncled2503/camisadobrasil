@@ -1,6 +1,6 @@
 "use client";
 
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useEffect, useState, useCallback } from "react";
 import { useSearchParams, useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { Package, Truck, Check, Search, ChevronLeft, Loader2, MapPin } from "lucide-react";
@@ -18,7 +18,7 @@ function RastreioContent() {
   const [timeline, setTimeline] = useState<TrackingEvent[] | null>(null);
   const [error, setError] = useState("");
 
-  const fetchTracking = async (trackingCode: string) => {
+  const fetchTracking = useCallback(async (trackingCode: string) => {
     if (!trackingCode.trim()) return;
     setLoading(true);
     setError("");
@@ -38,11 +38,11 @@ function RastreioContent() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [router]);
 
   useEffect(() => {
     if (initialCode) fetchTracking(initialCode);
-  }, [initialCode]);
+  }, [initialCode, fetchTracking]);
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault();
