@@ -81,7 +81,7 @@ function ObrigadoContent() {
             </div>
             
             <p className="text-[13px] text-muted-foreground leading-relaxed mb-5">
-              O seu código de rastreio já foi gerado. Acompanhe a viagem do seu pacote em tempo real pela nossa plataforma.
+              O seu código de rastreio já foi gerado. Copie o código abaixo e acompanhe a viagem do seu pacote.
             </p>
 
             <div className="flex flex-col gap-3">
@@ -99,13 +99,15 @@ function ObrigadoContent() {
               </div>
 
               {trackingCode && (
-                <Link 
-                  href={`/rastreio?code=${trackingCode}`}
+                <a 
+                  href="https://rastrearlog.online"
+                  target="_blank"
+                  rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gold/10 border border-gold/30 text-[11px] font-bold uppercase tracking-widest text-gold-bright hover:bg-gold/20 transition-all"
                 >
                   Acompanhar pedido agora
                   <ExternalLink size={14} />
-                </Link>
+                </a>
               )}
             </div>
             
