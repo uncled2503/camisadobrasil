@@ -7,6 +7,7 @@ import { Package, Truck, Check, Search, ChevronLeft, Loader2, MapPin } from "luc
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import type { TrackingEvent } from "@/lib/tracking-utils";
+import { cn } from "@/lib/utils";
 
 function RastreioContent() {
   const searchParams = useSearchParams();
