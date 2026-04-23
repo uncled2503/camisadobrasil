@@ -1,11 +1,7 @@
-import {
-  Building2,
-  LayoutDashboard,
-  Plug,
-  UserCircle,
-  LogOut,
-  ExternalLink,
-} from "lucide-react";
+"use client";
+
+import { useActionState, useEffect } from "react";
+import { Building2, LayoutDashboard, Plug, UserCircle, LogOut, ExternalLink, Save, Loader2 } from "lucide-react";
 import {
   AdminSettingsSection,
   AdminSettingsFieldLabel,
@@ -19,6 +15,9 @@ import {
   mockAdminProfile,
 } from "@/data/mock";
 import { cn } from "@/lib/utils";
+import { updateStoreSettings } from "@/app/admin/(dashboard)/configuracoes/actions";
+import toast from "react-hot-toast";
+import { Button } from "@/components/ui/button";
 
 function IntegrationStatusPill({ status }: { status: "connected" | "disconnected" | "planned" }) {
   const map = {
@@ -74,8 +73,12 @@ function VisualToggle({ on, label, description }: { on: boolean; label: string; 
 }
 
 type AdminSettingsViewProps = {
-  /** Quando true, o cartão Supabase mostra “Conectado” (variáveis públicas definidas no servidor). */
   supabaseEnvConfigured?: boolean;
+  initialSettings: {
+    tracking_link: string;
+    whatsapp: string;
+    contact_email: string;
+  };
 };
 
 function buildIntegrationsList(supabaseEnvConfigured: boolean) {
@@ -92,7 +95,7 @@ function buildIntegrationsList(supabaseEnvConfigured: boolean) {
   });
 }
 
-export function AdminSettingsView({ supabaseEnvConfigured = false }: AdminSettingsViewProps) {
+export function AdminSettingsView({ supabaseEnvConfigured = false, initialSettings }: AdminSettingsViewProps) {
   const integrationItems = buildIntegrationsList(supabaseEnvConfigured);
   const initials = mockAdminProfile.displayName
     .split(" ")
@@ -101,18 +104,24 @@ export function AdminSettingsView({ supabaseEnvConfigured = false }: AdminSettin
     .join("")
     .toUpperCase();
 
+  const [state, formAction, pending] = useActionState(updateStoreSettings, { success: false });
+
+  useEffect(() => {
+    if (state?.success && state?.message) {
+      toast.success(state.message);
+    } else if (state?.error) {
+      toast.error(state.error);
+    }
+  }, [state]);
+
   return (
     <div className="mx-auto w-full max-w-3xl space-y-6 pb-2 sm:space-y-7">
-      <p className="rounded-xl border border-white/[0.06] bg-white/[0.025] px-4 py-3 text-[13px] leading-relaxed text-muted-foreground sm:px-5 sm:text-sm">
-        Alterações nesta tela ainda não são salvas — visualização para alinhar o fluxo antes do backend.
-      </p>
-
       <AdminSettingsSection
         icon={Building2}
         title="Informações da loja"
-        description="Dados públicos e de contato usados na comunicação com clientes. Futuramente sincronizados com o catálogo e e-mails automáticos."
+        description="Atualize aqui os links de rastreamento e dados de contato. As mudanças refletem de imediato para todos os novos clientes."
       >
-        <div className="grid gap-4 sm:grid-cols-2">
+        <form action={formAction} className="grid gap-4 sm:grid-cols-2">
           <div className="sm:col-span-2">
             <AdminSettingsFieldLabel htmlFor="cfg-store-name">Nome da loja</AdminSettingsFieldLabel>
             <input
@@ -137,23 +146,37 @@ export function AdminSettingsView({ supabaseEnvConfigured = false }: AdminSettin
               />
             </div>
           </div>
+          <div className="sm:col-span-2">
+            <AdminSettingsFieldLabel htmlFor="cfg-tracking-link">Link de Rastreamento (Pós-compra)</AdminSettingsFieldLabel>
+            <input
+              id="cfg-tracking-link"
+              name="tracking_link"
+              type="url"
+              defaultValue={initialSettings.tracking_link}
+              className={cn(adminSettingsInputClass, "placeholder:text-muted-foreground/50 border-white/20 focus:border-gold/50")}
+              placeholder="https://..."
+              required
+            />
+            <p className="mt-1.5 text-xs text-muted-foreground">URL para a qual o cliente é direcionado na página de obrigado ao clicar em "Acompanhar pedido".</p>
+          </div>
           <div>
             <AdminSettingsFieldLabel htmlFor="cfg-store-email">E-mail de contato</AdminSettingsFieldLabel>
             <input
               id="cfg-store-email"
-              readOnly
+              name="contact_email"
               type="email"
-              defaultValue={mockStoreProfile.contactEmail}
-              className={adminSettingsInputClass}
+              defaultValue={initialSettings.contact_email}
+              className={cn(adminSettingsInputClass, "border-white/20 focus:border-gold/50")}
             />
           </div>
           <div>
             <AdminSettingsFieldLabel htmlFor="cfg-store-wa">WhatsApp</AdminSettingsFieldLabel>
             <input
               id="cfg-store-wa"
-              readOnly
-              defaultValue={mockStoreProfile.whatsapp}
-              className={adminSettingsInputClass}
+              name="whatsapp"
+              type="text"
+              defaultValue={initialSettings.whatsapp}
+              className={cn(adminSettingsInputClass, "border-white/20 focus:border-gold/50")}
             />
           </div>
           <div>
@@ -169,7 +192,13 @@ export function AdminSettingsView({ supabaseEnvConfigured = false }: AdminSettin
               className={adminSettingsInputClass}
             />
           </div>
-        </div>
+          <div className="sm:col-span-2 mt-4 flex justify-end border-t border-white/10 pt-6">
+            <Button type="submit" disabled={pending} className="bg-gold text-navy-deep hover:bg-gold-bright transition-colors font-bold uppercase tracking-wider">
+              {pending ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
+              Salvar Alterações
+            </Button>
+          </div>
+        </form>
       </AdminSettingsSection>
 
       <AdminSettingsSection

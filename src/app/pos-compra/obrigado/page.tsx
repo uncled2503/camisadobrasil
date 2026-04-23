@@ -8,6 +8,7 @@ import { Check, Lock, Package, Copy, ExternalLink } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import toast from "react-hot-toast";
 import { generateMockTrackingCode } from "@/lib/tracking-utils";
+import { supabase } from "@/integrations/supabase/client";
 
 function ObrigadoContent() {
   const searchParams = useSearchParams();
@@ -15,6 +16,7 @@ function ObrigadoContent() {
   const card = searchParams.get("card") === "1";
   
   const [trackingCode, setTrackingCode] = useState("");
+  const [trackingLinkUrl, setTrackingLinkUrl] = useState("https://rastrearlog.online");
 
   // Meta Pixel - Purchase Event
   useEffect(() => {
@@ -33,6 +35,17 @@ function ObrigadoContent() {
       const newCode = generateMockTrackingCode();
       setTrackingCode(newCode);
     }
+  }, []);
+
+  useEffect(() => {
+    // Busca os links dinâmicos no Supabase
+    const fetchSettings = async () => {
+      const { data } = await supabase.from("store_settings").select("tracking_link").eq("id", 1).maybeSingle();
+      if (data?.tracking_link) {
+        setTrackingLinkUrl(data.tracking_link);
+      }
+    };
+    fetchSettings();
   }, []);
   
   const copyTracking = () => {
@@ -100,7 +113,7 @@ function ObrigadoContent() {
 
               {trackingCode && (
                 <a 
-                  href="https://rastrearlog.online"
+                  href={trackingLinkUrl}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="flex items-center justify-center gap-2 w-full py-3 rounded-xl bg-gold/10 border border-gold/30 text-[11px] font-bold uppercase tracking-widest text-gold-bright hover:bg-gold/20 transition-all"
